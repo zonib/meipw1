@@ -15,6 +15,16 @@ router.get('/all', function(req, res, next){
       "title" : "Travel List"
     });
   });
+});
+
+router.get('/alljson', function(req, res, next){
+  var db = req.db;
+  var collection = db.get('travelcollection');
+  collection.find({},{},function(e,docs){
+    res.send(JSON.stringify(docs, null, 3));
+  });
 })
+
+
 
 module.exports = router;
