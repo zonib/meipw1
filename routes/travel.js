@@ -8,7 +8,7 @@ router.get('/', function(req, res, next) {
 
 router.get('/all', function(req, res, next){
   var db = req.db;
-  var collection = db.get('travel');
+  var collection = db.get('travelcollection');
   collection.find({},{},function(e,docs){
     res.render('travel', {
       "travellist" : docs,
