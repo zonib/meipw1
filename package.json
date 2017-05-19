@@ -1,31 +1,17 @@
 {
   "name": "traveldiary",
-  "version": "1.0.0",
-  "description": "Trabalho pratico 1 programação WEB #nodejs #mongodb",
-  "main": "index.js",
+  "version": "0.0.0",
+  "private": true,
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "start": "node ./bin/www"
   },
-  "repository": {
-    "type": "git",
-    "url": "git+ssh://git@gitlab.com/zzonib/pw.git"
-  },
-  "keywords": [
-    "#nodejs",
-    "#mongodb"
-  ],
-  "author": "jsoares lino",
-  "license": "ISC",
-  "bugs": {
-    "url": "https://gitlab.com/zzonib/pw/issues"
-  },
-  "homepage": "https://gitlab.com/zzonib/pw#README",
   "dependencies": {
-    "body-parser": "^1.17.2",
-    "connect-flash": "^0.1.1",
-    "ejs": "^2.5.6",
-    "express": "^4.15.3",
-    "express-session": "^1.15.3",
-    "mongodb": "^2.2.26"
+    "body-parser": "~1.17.1",
+    "cookie-parser": "~1.4.3",
+    "debug": "~2.6.3",
+    "ejs": "~2.5.6",
+    "express": "~4.15.2",
+    "morgan": "~1.8.1",
+    "serve-favicon": "~2.4.2"
   }
 }
