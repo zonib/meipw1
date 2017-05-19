@@ -12,7 +12,7 @@ router.post('/login', function(req, res, next){
 
   var db = req.db;
   var collection = db.get('usercollection');
-  collection.findOne({"username" : username, "pw": pw},{},function(e,docs){
+  collection.findOne({"username" : username, "pw": pw },{},function(e,docs){
     if(!docs){
       req.flash('error', 'Login incorreto!');
       res.redirect('/');
