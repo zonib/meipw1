@@ -7,6 +7,7 @@ var bodyParser = require('body-parser');
 var flash = require('connect-flash');
 var session = require("express-session");
 
+
 var index = require('./routes/index');
 var users = require('./routes/users');
 var travel = require('./routes/travel');
@@ -41,7 +42,6 @@ app.use(session({
 }));
 
 app.use(flash());
-
 
 // Make our db accessible to our router
 app.use(function(req,res,next){
