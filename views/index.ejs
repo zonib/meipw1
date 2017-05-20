@@ -1,19 +1,10 @@
-<!DOCTYPE html>
-<html>
-<head>
-  <title><%= title %></title>
-  <link rel='stylesheet' href='/stylesheets/style.css' />
-</head>
-<body><%= pw%>
-  <h1><%= title %></h1>
-  <p>Welcome to <%= title %></p>
+<body>
   <%- (errMessage ? "<p>" + errMessage + "</p>" : '') %>
   <form class="" action="users/login" method="post">
     <label for="">User</label><br/>
     <input type="text" name="user" value=""><br/>
     <label for="">Pw</label><br/>
     <input type="password" name="pw" value=""><br/><br/>
-    <button type='submit' class='btn btn-lg btn-default '>Submite</button>
+    <button type='submit' class='btn btn-lg btn-default '>Submit</button>
   </form>
 </body>
-</html>
