@@ -1,4 +1,5 @@
 var express = require('express');
+var crypto = require('crypto');
 var router = express.Router();
 
 /* GET users listing. */
@@ -12,7 +13,7 @@ router.post('/login', function(req, res, next){
 
   var db = req.db;
   var collection = db.get('usercollection');
-  collection.findOne({"username" : username, "pw": pw },{},function(e,docs){
+  collection.findOne({"username" : username, "pw": crypto.createHash('md5').update(pw).digest("hex") },{},function(e,docs){
     if(!docs){
       req.flash('error', 'Login incorreto!');
       res.redirect('/');
