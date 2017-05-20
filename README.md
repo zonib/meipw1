@@ -21,3 +21,7 @@ viagem
         -videos?
         -audio?
         -metereologia?
+      -classificações //#like
+        -description
+        -user
+        -value
