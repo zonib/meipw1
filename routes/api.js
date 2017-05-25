@@ -253,7 +253,7 @@ router.get('/v1/experiences/:experience', function(req, res, next){
   }
 
   var collection = req.db.get('travelcollection');
-  collection.findOne({ "experiences._id": id}, { },function(e,docs){
+  collection.findOne({ "experiences._id": ObjectID(id)},  "experiences.$" ,function(e,docs){
     if(!docs){
       res.status(204).send();
       return;
