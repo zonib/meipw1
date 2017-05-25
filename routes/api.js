@@ -2,8 +2,8 @@ var express = require('express'),
 crypto = require('crypto'),
 cutter = require('utf8-binary-cutter'),
 len = require('object-length'),
-mongoose = require('mongoose'),
-ObjectId = require('mongodb').ObjectID;
+ObjectId = require('mongodb').ObjectID,
+mongoose = require('mongoose');
 // var Travels = require('../model/travel');
 // var ObjectID = require('mongodb').ObjectID;
 var router = express.Router();
@@ -257,20 +257,13 @@ router.get('/v1/travels/:travel/experiences/:experience', function(req, res, nex
 
     // var ids = docs.map(function(el) { return el._id } );
 
-    res.send(docs);
+    // console.log(docs.experiences.pull({_id: experienceid}));
+    res.send(docs.experiences.pull(mongoose.Types.ObjectId(experienceid)));
     return;
-        // docs.findById(exper)
+    // docs.findById(exper)
   });
 });
 
-
-router.get('/v2',  function(req, res, next){
-  mongoose.model('Experience').find({} , function (err, docs) {
-
-    res.send(docs);
-    return;
-  });
-});
 
 //update experience
 router.put('/v1/experiences/:experience', function(req, res, next){
