@@ -80,7 +80,7 @@ router.post('/v1/travels', function(req, res, next){
 //get all travels
 router.get('/v1/travels', function(req, res, next){
 
-  mongoose.model('Travel').find({}, function (err, docs) {
+  mongoose.model('Travel').find({deleted: null}, function (err, docs) {
     if(!docs){
       res.status(404).send();
       return;
@@ -100,7 +100,7 @@ router.get('/v1/travels/:id', function(req, res, next){
     return;
   }
 
-  mongoose.model('Travel').findOne({"_id" : id }, function (err, docs) {
+  mongoose.model('Travel').findById(id , function (err, docs) {
     if(!docs){
       res.status(404).send();
       return;
@@ -122,6 +122,7 @@ router.put('/v1/travels/:id', function(req, res, next){
 
   var fields = 0;
   var data = { };
+  data.local = {};
 
   if(req.body.description) data.description = req.body.description;
   if(req.body.country) data.local.country = req.body.country;
@@ -134,22 +135,19 @@ router.put('/v1/travels/:id', function(req, res, next){
     return;
   }
 
-  var updated = true;
-  var collection = req.db.get('travelcollection');
+  mongoose.model('Travel').findById(id , function (err, obj) {
+    if(!obj){
+      res.status(404).send();
+      return;
+    }
 
-  try {
-    collection.findOneAndUpdate({"_id" : id},{ $set : data});
-  } catch (err) {
-    updated = false;
+    obj.update(data, function (err, blobID) {
+      if(err) res.status(501).send();
+      else res.status(200).send();
 
-  } finally {
-
-    if(updated) res.status(200).send();
-    else res.status(501).send();
-
-    return;
-  }
-
+      return;
+    });
+  });
 });
 
 //delete travel
@@ -161,21 +159,19 @@ router.delete('/v1/travels/:id', function(req, res, next) {
     return;
   }
 
-  var deleted = true;
+  mongoose.model('Travel').findById(id , function (err, obj) {
+    if(!obj){
+      res.status(404).send();
+      return;
+    }
 
-  var collection = req.db.get('travelcollection');
-  try {
-    collection.findOneAndUpdate({"_id" : id},{ $set : { deleted: 1 }});
-  } catch (err) {
-    deleted = false;
+    obj.update({deleted: true}, function (err, blobID) {
+      if(err) res.status(501).send();
+      else res.status(200).send();
 
-  } finally {
-
-    if(deleted) res.status(200).send();
-    else res.status(501).send();
-
-    return;
-  }
+      return;
+    });
+  });
 });
 
 //get travel experiences

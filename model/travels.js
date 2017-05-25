@@ -7,17 +7,18 @@ var travelSchema = new mongoose.Schema({
   local: {
     country: String,
     city: String,
-    gps: { lat: Number, lng: Number}},
-    active: Boolean
-  });
+    gps: { lat: Number, lng: Number}
+  },
+  deleted: Boolean
+});
 
 mongoose.model('Travel', travelSchema);
 
-  // -Local
-  //   -Pais
-  //   -Cidade
-  //   -GPS
-  // -Descrição
-  // -Data
-  // -Utilizador
-  // -Experiencias
+// -Local
+//   -Pais
+//   -Cidade
+//   -GPS
+// -Descrição
+// -Data
+// -Utilizador
+// -Experiencias
