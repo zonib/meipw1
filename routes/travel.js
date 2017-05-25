@@ -1,5 +1,6 @@
-var express = require('express');
-var router = express.Router();
+var express = require('express'),
+mongoose = require('mongoose'),
+router = express.Router();
 
 /* GET home page. */
 router.get('/', function(req, res, next) {

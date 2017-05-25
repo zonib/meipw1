@@ -1,8 +1,10 @@
-var express = require('express');
-var crypto = require('crypto');
-var cutter = require('utf8-binary-cutter');
-var len = require('object-length');
-var ObjectID = require('mongodb').ObjectID;
+var express = require('express'),
+crypto = require('crypto'),
+cutter = require('utf8-binary-cutter'),
+len = require('object-length'),
+mongoose = require('mongoose');
+// var Travels = require('../model/travel');
+// var ObjectID = require('mongodb').ObjectID;
 var router = express.Router();
 
 //Login method
@@ -40,7 +42,6 @@ router.post('/v1/travels', function(req, res, next){
   //   return;
   // }
 
-  var local = req.body.local;
   var description = req.body.description;
   var date = req.body.date;
   var city = req.body.city;
@@ -53,35 +54,33 @@ router.post('/v1/travels', function(req, res, next){
   }
 
   var data = {};
-  data.userid = req.session.userid ? req.session.userid  : '1';
-  data.description = description;
   data.date = date;
+  data.user = req.session.userid ? req.session.userid: "1";
+  data.description = description;
+
 
   data.local = {};
   if(gps) data.local.gps = gps;
   if(country) data.local.country = country;
   if(city) data.local.city = city;
 
-  var db = req.db,
-  collection = db.get("travelcollection"),
-  inserted = true;
+  mongoose.model('Travel').create(data, function(err, obj) {
+    if(err){
+      res.status('409').send();
+    }
+    else {
+      res.status('201').send();
+    }
 
-  try {
-    collection.insert(data);
-  } catch (err) {
-    inserted = false;
-  }
+    return;
+  })
 
-  if(inserted) res.status('201').send();
-  else res.status('409').send();
-
-  return;
 });
 
 //get all travels
 router.get('/v1/travels', function(req, res, next){
-  var collection = req.db.get('travelcollection');
-  collection.find({deleted: null}, "-experiences",function(e,docs){
+
+  mongoose.model('Travel').find({}, function (err, docs) {
     if(!docs){
       res.status(404).send();
       return;
@@ -101,10 +100,9 @@ router.get('/v1/travels/:id', function(req, res, next){
     return;
   }
 
-  var collection = req.db.get('travelcollection');
-  collection.findOne({ "_id" : id }, '-experiences',function(e,docs){
+  mongoose.model('Travel').findOne({"_id" : id }, function (err, docs) {
     if(!docs){
-      res.status(204).send();
+      res.status(404).send();
       return;
     }
 
