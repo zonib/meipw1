@@ -1,20 +1,15 @@
 var mongoose = require('mongoose');
-var experience = require('./experiences');
 
-var travelSchema = new mongoose.Schema({
+var experienceSchema = new mongoose.Schema({
   date: Date,
-  user: String,
-  description: String,
-  local: {
-    country: String,
-    city: String,
-    gps: { lat: Number, lng: Number}
-  },
-  experiences: [experience],
-  deleted: Boolean
+  narrative: String,
+  gps: { lat: Number, lng: Number},
+  details: { type: Array, default: []},
+  deleted: Boolean,
+  classifications: {type: Array, default:[]}
 });
 
-mongoose.model('Travel', travelSchema);
+mongoose.model('Experience', experienceSchema);
 
 // viagem
 //   -Local

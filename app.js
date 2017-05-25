@@ -8,7 +8,8 @@ var flash = require('connect-flash');
 var session = require("express-session");
 
 var db = require('./model/db'),
-  travel = require('./model/travels');
+  travel = require('./model/travels'),
+  experience = require('./model/experiences');
 
 var index = require('./routes/index'),
   users = require('./routes/users'),

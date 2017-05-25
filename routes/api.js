@@ -2,7 +2,8 @@ var express = require('express'),
 crypto = require('crypto'),
 cutter = require('utf8-binary-cutter'),
 len = require('object-length'),
-mongoose = require('mongoose');
+mongoose = require('mongoose'),
+ObjectId = require('mongodb').ObjectID;
 // var Travels = require('../model/travel');
 // var ObjectID = require('mongodb').ObjectID;
 var router = express.Router();
@@ -80,7 +81,7 @@ router.post('/v1/travels', function(req, res, next){
 //get all travels
 router.get('/v1/travels', function(req, res, next){
 
-  mongoose.model('Travel').find({deleted: null}, function (err, docs) {
+  mongoose.model('Travel').find({deleted: {$ne: true}}, function (err, docs) {
     if(!docs){
       res.status(404).send();
       return;
@@ -183,14 +184,13 @@ router.get('/v1/travels/:travel/experiences/', function(req, res, next){
     return;
   }
 
-  var collection = req.db.get('travelcollection');
-  collection.find({ "_id": travel}, 'experiences' ,function(e,docs){
+  mongoose.model('Travel').findById(travel , function (err, docs) {
     if(!docs){
-      res.status(204).send();
+      res.status(404).send();
       return;
     }
 
-    res.send(docs);
+    res.send(docs.experiences);
     return;
   });
 });
@@ -216,47 +216,60 @@ router.post('/v1/travels/:travel/experiences/', function(req, res, next){
   }
 
   var data = {};
-  data._id = new ObjectID();
+  data._id = mongoose.Types.ObjectId(),
   data.date = date;
   data.name = name;
   if(narrative) data.narrative = narrative;
   if(gps) data.gps = gps;
 
-  collection = req.db.get("travelcollection");
-  inserted = true;
+  mongoose.model('Travel').findById(travelid , function (err, docs) {
+    if(!docs){
+      res.status(404).send();
+      return;
+    }
 
-  try {
-    collection.findOneAndUpdate({"_id" : travelid},{ $push : { "experiences" : data }});
-  } catch (err) {
-    inserted = false;
-  }
+    docs.experiences.push(data);
 
-  if(inserted) res.status('201').send();
-  else res.status('409').send();
+    docs.save(function (err) {
+      if (err) res.status('409').send();
+      res.status('201').send();
 
-  return;
+      return;
+    });
+  });
 });
 
 //get single experience
-router.get('/v1/experiences/:experience', function(req, res, next){
-  var id = req.params.experience;
+router.get('/v1/travels/:travel/experiences/:experience', function(req, res, next){
+  var travelid = req.params.travel;
+  var experienceid = req.params.experience;
 
-  if(cutter.getBinarySize(id) != 24){
+  if(cutter.getBinarySize(experienceid) != 24 || cutter.getBinarySize(travelid) != 24){
     res.status(400).send();
     return;
   }
 
-  var collection = req.db.get('travelcollection');
-  collection.findOne( { "experiences._id": ObjectID(id)},  "experiences.$" , function(e,docs){
+  mongoose.model('Travel').findById(travelid , function (err, docs) {
     if(!docs){
-      res.status(204).send();
+      res.status(404).send();
       return;
     }
 
-    res.send(docs.experiences[0]);
+    // var ids = docs.map(function(el) { return el._id } );
+
+    res.send(docs);
+    return;
+        // docs.findById(exper)
+  });
+});
+
+
+router.get('/v2',  function(req, res, next){
+  mongoose.model('Experience').find({} , function (err, docs) {
+
+    res.send(docs);
     return;
   });
-
 });
 
 //update experience
