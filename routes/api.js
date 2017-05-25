@@ -31,7 +31,6 @@ router.post('/v1/login', function(req, res, next){
   });
 });
 
-
 //add new travel to database
 router.post('/v1/travels', function(req, res, next){
 
@@ -82,13 +81,13 @@ router.post('/v1/travels', function(req, res, next){
 //get all travels
 router.get('/v1/travels', function(req, res, next){
   var collection = req.db.get('travelcollection');
-  collection.find({deleted: null}, "-experiences",function(e,docs){
+  collection.find({deleted: null}, "",function(e,docs){
     if(!docs){
       res.status(404).send();
       return;
     }
 
-    res.send(JSON.stringify(docs));
+    res.send(docs);
     return;
   });
 });
@@ -109,7 +108,7 @@ router.get('/v1/travels/:id', function(req, res, next){
       return;
     }
 
-    res.send(JSON.stringify(docs));
+    res.send(docs);
     return;
   });
 });
@@ -197,7 +196,7 @@ router.get('/v1/travels/:travel/experiences/', function(req, res, next){
       return;
     }
 
-    res.send(JSON.stringify(docs));
+    res.send(docs);
     return;
   });
 });
@@ -254,13 +253,13 @@ router.get('/v1/experiences/:experience', function(req, res, next){
   }
 
   var collection = req.db.get('travelcollection');
-  collection.findOne({ "experiences._id": ObjectID(id)},  "experiences.$" ,function(e,docs){
+  collection.findOne( { "experiences._id": ObjectID(id)},  "experiences.$" , function(e,docs){
     if(!docs){
       res.status(204).send();
       return;
     }
 
-    res.send(JSON.stringify(docs.experiences[0]));
+    res.send(docs.experiences[0]);
     return;
   });
 
@@ -295,19 +294,22 @@ router.put('/v1/experiences/:experience', function(req, res, next){
 
   var updated = true;
   var collection = req.db.get('travelcollection');
+  var error;
 
   try {
-    collection.findOneAndUpdate({ "experiences._id": ObjectID(id)},{ $set : data});
+    collection.findOneAndUpdate({ "experiences._id": ObjectID(id)},  { "experiences": data});
   } catch (err) {
+    error = err;
     updated = false;
   } finally {
 
     if(updated) res.status(200).send("");
-    else res.status(501).send();
+    else res.status(501).send(JSON.stringify(error));
 
     return;
   }
 });
+
 
 //delete experience
 router.delete('/v1/experiences', function(req, res, next){

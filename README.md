@@ -11,7 +11,7 @@ viagem
   -Utilizador
   -Experiencias
     -Data
-    -Designação
+    -Designação;
     -Narrativa?
     -GPS?
     -Caracteristicas
