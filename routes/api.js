@@ -81,7 +81,7 @@ router.post('/v1/travels', function(req, res, next){
 //get all travels
 router.get('/v1/travels', function(req, res, next){
   var collection = req.db.get('travelcollection');
-  collection.find({deleted: null}, "",function(e,docs){
+  collection.find({deleted: null}, "-experiences",function(e,docs){
     if(!docs){
       res.status(404).send();
       return;
