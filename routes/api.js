@@ -1,6 +1,7 @@
 var express = require('express');
 var crypto = require('crypto');
 var cutter = require('utf8-binary-cutter');
+var len = require('object-length');
 var ObjectID = require('mongodb').ObjectID;
 var router = express.Router();
 
@@ -81,7 +82,7 @@ router.post('/v1/travels', function(req, res, next){
 //get all travels
 router.get('/v1/travels', function(req, res, next){
   var collection = req.db.get('travelcollection');
-  collection.find({deleted: null},{},function(e,docs){
+  collection.find({deleted: null}, "-experiences",function(e,docs){
     if(!docs){
       res.status(404).send();
       return;
@@ -259,15 +260,53 @@ router.get('/v1/experiences/:experience', function(req, res, next){
       return;
     }
 
-    res.send(JSON.stringify(docs));
+    res.send(JSON.stringify(docs.experiences[0]));
     return;
   });
 
 });
 
 //update experience
-router.put('/v1/experiences', function(req, res, next){
+router.put('/v1/experiences/:experience', function(req, res, next){
+  var id = req.params.experience;
 
+  if(cutter.getBinarySize(id) != 24){
+    res.status(400).send();
+    return;
+  }
+
+  var date = req.body.date;
+  var name = req.body.name;
+  var narrative = req.body.narrative;
+  var gps = req.body.gps;
+
+  var data = {};
+
+  if(date) data.date = date;
+  if(name) data.name = name;
+  if(narrative) data.narrative = narrative;
+  if(gps) data.gps = gps;
+
+
+  if(len(data) == 0){
+    res.status(400).send();
+    return;
+  }
+
+  var updated = true;
+  var collection = req.db.get('travelcollection');
+
+  try {
+    collection.findOneAndUpdate({ "experiences._id": ObjectID(id)},{ $set : data});
+  } catch (err) {
+    updated = false;
+  } finally {
+
+    if(updated) res.status(200).send("");
+    else res.status(501).send();
+
+    return;
+  }
 });
 
 //delete experience

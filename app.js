@@ -17,7 +17,7 @@ var api = require('./routes/api');
 
 //database setup
 var mongo = require('mongodb');
-var MongoClient = require('mongodb').MongoClient
+// var MongoClient = require('mongodb').MongoClient
 var monk = require('monk');
 // var db = monk('localhost:27017/traveldiary');
 // MongoClient.connect('your-mongodb-url', (err, database) => {
