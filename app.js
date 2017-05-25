@@ -17,8 +17,17 @@ var api = require('./routes/api');
 
 //database setup
 var mongo = require('mongodb');
+var MongoClient = require('mongodb').MongoClient
 var monk = require('monk');
 // var db = monk('localhost:27017/traveldiary');
+// MongoClient.connect('your-mongodb-url', (err, database) => {
+//   if (err) return console.log(err)
+//   db = database
+//   app.listen(3000, () => {
+//     console.log('listening on 3000')
+//   })
+// })
+
 var db = monk('zzonib:Ipca2017!..@cluster0-shard-00-00-0ye1h.mongodb.net:27017,cluster0-shard-00-01-0ye1h.mongodb.net:27017,cluster0-shard-00-02-0ye1h.mongodb.net:27017/<DATABASE>?ssl=true&replicaSet=Cluster0-shard-0&authSource=admin');
 
 var app = express();
