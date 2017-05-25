@@ -9,19 +9,18 @@ viagem
   -Descrição
   -Data
   -Utilizador
-  -Timeline
-    -Momentos
-      -Data
-      -Designação
-      -Narrativa?
-      -GPS?
-      -Caracteristicas
-        -texto?
-        -fotos?
-        -videos?
-        -audio?
-        -metereologia?
-      -classificações //#like
-        -description
-        -user
-        -value
+  -Experiencias
+    -Data
+    -Designação
+    -Narrativa?
+    -GPS?
+    -Caracteristicas
+      -texto?
+      -fotos?
+      -videos?
+      -audio?
+      -metereologia?
+    -classificações #like
+      -description
+      -user
+      -value
