@@ -7,28 +7,14 @@ var bodyParser = require('body-parser');
 var flash = require('connect-flash');
 var session = require("express-session");
 
+var db = require('./model/db'),
+  travel = require('./model/travels'),
+  experience = require('./model/experiences');
 
-var index = require('./routes/index');
-var users = require('./routes/users');
-var travel = require('./routes/travel');
-// var travels = require('./routes/travels');
-var api = require('./routes/api');
-
-
-//database setup
-var mongo = require('mongodb');
-// var MongoClient = require('mongodb').MongoClient
-var monk = require('monk');
-// var db = monk('localhost:27017/traveldiary');
-// MongoClient.connect('your-mongodb-url', (err, database) => {
-//   if (err) return console.log(err)
-//   db = database
-//   app.listen(3000, () => {
-//     console.log('listening on 3000')
-//   })
-// })
-
-var db = monk('zzonib:Ipca2017!..@cluster0-shard-00-00-0ye1h.mongodb.net:27017,cluster0-shard-00-01-0ye1h.mongodb.net:27017,cluster0-shard-00-02-0ye1h.mongodb.net:27017/<DATABASE>?ssl=true&replicaSet=Cluster0-shard-0&authSource=admin');
+var index = require('./routes/index'),
+  users = require('./routes/users'),
+  travel = require('./routes/travel'),
+  api = require('./routes/api');
 
 var app = express();
 
@@ -55,8 +41,8 @@ app.use(flash());
 
 // Make our db accessible to our router
 app.use(function(req,res,next){
-    req.db = db;
-    next();
+  req.db = db;
+  next();
 });
 
 app.use('/', index);

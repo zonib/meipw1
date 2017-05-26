@@ -1,8 +1,12 @@
-var express = require('express');
-var crypto = require('crypto');
-var cutter = require('utf8-binary-cutter');
-var len = require('object-length');
-var ObjectID = require('mongodb').ObjectID;
+var express = require('express'),
+crypto = require('crypto'),
+cutter = require('utf8-binary-cutter'),
+len = require('object-length'),
+ObjectId = require('mongodb').ObjectID,
+mongoose = require('mongoose');
+Travel = mongoose.model('Travel');
+// var Travels = require('../model/travel');
+// var ObjectID = require('mongodb').ObjectID;
 var router = express.Router();
 
 //Login method
@@ -40,7 +44,6 @@ router.post('/v1/travels', function(req, res, next){
   //   return;
   // }
 
-  var local = req.body.local;
   var description = req.body.description;
   var date = req.body.date;
   var city = req.body.city;
@@ -53,35 +56,33 @@ router.post('/v1/travels', function(req, res, next){
   }
 
   var data = {};
-  data.userid = req.session.userid ? req.session.userid  : '1';
-  data.description = description;
   data.date = date;
+  data.user = req.session.userid ? req.session.userid: "1";
+  data.description = description;
+
 
   data.local = {};
   if(gps) data.local.gps = gps;
   if(country) data.local.country = country;
   if(city) data.local.city = city;
 
-  var db = req.db,
-  collection = db.get("travelcollection"),
-  inserted = true;
+  mongoose.model('Travel').create(data, function(err, obj) {
+    if(err){
+      res.status('409').send();
+    }
+    else {
+      res.status('201').send();
+    }
 
-  try {
-    collection.insert(data);
-  } catch (err) {
-    inserted = false;
-  }
+    return;
+  })
 
-  if(inserted) res.status('201').send();
-  else res.status('409').send();
-
-  return;
 });
 
 //get all travels
 router.get('/v1/travels', function(req, res, next){
-  var collection = req.db.get('travelcollection');
-  collection.find({deleted: null}, "",function(e,docs){
+
+  mongoose.model('Travel').find({deleted: {$ne: true}}, function (err, docs) {
     if(!docs){
       res.status(404).send();
       return;
@@ -101,10 +102,9 @@ router.get('/v1/travels/:id', function(req, res, next){
     return;
   }
 
-  var collection = req.db.get('travelcollection');
-  collection.findOne({ "_id" : id }, '-experiences',function(e,docs){
+  mongoose.model('Travel').findById(id , function (err, docs) {
     if(!docs){
-      res.status(204).send();
+      res.status(404).send();
       return;
     }
 
@@ -124,6 +124,7 @@ router.put('/v1/travels/:id', function(req, res, next){
 
   var fields = 0;
   var data = { };
+  data.local = {};
 
   if(req.body.description) data.description = req.body.description;
   if(req.body.country) data.local.country = req.body.country;
@@ -136,22 +137,19 @@ router.put('/v1/travels/:id', function(req, res, next){
     return;
   }
 
-  var updated = true;
-  var collection = req.db.get('travelcollection');
+  mongoose.model('Travel').findById(id , function (err, obj) {
+    if(!obj){
+      res.status(404).send();
+      return;
+    }
 
-  try {
-    collection.findOneAndUpdate({"_id" : id},{ $set : data});
-  } catch (err) {
-    updated = false;
+    obj.update(data, function (err, blobID) {
+      if(err) res.status(501).send();
+      else res.status(200).send();
 
-  } finally {
-
-    if(updated) res.status(200).send();
-    else res.status(501).send();
-
-    return;
-  }
-
+      return;
+    });
+  });
 });
 
 //delete travel
@@ -163,21 +161,19 @@ router.delete('/v1/travels/:id', function(req, res, next) {
     return;
   }
 
-  var deleted = true;
+  mongoose.model('Travel').findById(id , function (err, obj) {
+    if(!obj){
+      res.status(404).send();
+      return;
+    }
 
-  var collection = req.db.get('travelcollection');
-  try {
-    collection.findOneAndUpdate({"_id" : id},{ $set : { deleted: 1 }});
-  } catch (err) {
-    deleted = false;
+    obj.update({deleted: true}, function (err, blobID) {
+      if(err) res.status(501).send();
+      else res.status(200).send();
 
-  } finally {
-
-    if(deleted) res.status(200).send();
-    else res.status(501).send();
-
-    return;
-  }
+      return;
+    });
+  });
 });
 
 //get travel experiences
@@ -189,14 +185,13 @@ router.get('/v1/travels/:travel/experiences/', function(req, res, next){
     return;
   }
 
-  var collection = req.db.get('travelcollection');
-  collection.find({ "_id": travel}, 'experiences' ,function(e,docs){
+  mongoose.model('Travel').findById(travel , function (err, docs) {
     if(!docs){
-      res.status(204).send();
+      res.status(404).send();
       return;
     }
 
-    res.send(docs);
+    res.send(docs.experiences);
     return;
   });
 });
@@ -222,54 +217,55 @@ router.post('/v1/travels/:travel/experiences/', function(req, res, next){
   }
 
   var data = {};
-  data._id = new ObjectID();
+  data._id = mongoose.Types.ObjectId(),
   data.date = date;
   data.name = name;
   if(narrative) data.narrative = narrative;
   if(gps) data.gps = gps;
 
-  collection = req.db.get("travelcollection");
-  inserted = true;
+  mongoose.model('Travel').findById(travelid, function (err, docs) {
+    if(!docs){
+      res.status(404).send();
+      return;
+    }
 
-  try {
-    collection.findOneAndUpdate({"_id" : travelid},{ $push : { "experiences" : data }});
-  } catch (err) {
-    inserted = false;
-  }
+    docs.experiences.push(data);
 
-  if(inserted) res.status('201').send();
-  else res.status('409').send();
+    docs.save(function (err) {
+      if (err) res.status('409').send();
+      res.status('201').send();
 
-  return;
+      return;
+    });
+  });
 });
 
 //get single experience
-router.get('/v1/experiences/:experience', function(req, res, next){
-  var id = req.params.experience;
+router.get('/v1/travels/:travel/experiences/:experience', function(req, res, next){
+  var travelid = req.params.travel;
+  var experienceid = req.params.experience;
 
-  if(cutter.getBinarySize(id) != 24){
+  if(cutter.getBinarySize(experienceid) != 24 || cutter.getBinarySize(travelid) != 24){
     res.status(400).send();
     return;
   }
 
-  var collection = req.db.get('travelcollection');
-  collection.findOne( { "experiences._id": ObjectID(id)},  "experiences.$" , function(e,docs){
-    if(!docs){
-      res.status(204).send();
+  Travel.findOne({ _id: travelid, "experiences._id": mongoose.Types.ObjectId(experienceid), "experiences.deleted": { $ne: true} }, { "experiences.$" : 1}, function (err, docs) {
+    if(!docs.experiences[0]){
+      res.status(404).send();
       return;
     }
-
     res.send(docs.experiences[0]);
     return;
   });
-
 });
 
 //update experience
-router.put('/v1/experiences/:experience', function(req, res, next){
-  var id = req.params.experience;
+router.put('/v1/travels/:travel/experiences/:experience', function(req, res, next){
+  var travelid = req.params.travel;
+  var experienceid = req.params.experience;
 
-  if(cutter.getBinarySize(id) != 24){
+  if(cutter.getBinarySize(travelid) != 24 || cutter.getBinarySize(experienceid) ){
     res.status(400).send();
     return;
   }
@@ -280,41 +276,55 @@ router.put('/v1/experiences/:experience', function(req, res, next){
   var gps = req.body.gps;
 
   var data = {};
-
   if(date) data.date = date;
   if(name) data.name = name;
   if(narrative) data.narrative = narrative;
   if(gps) data.gps = gps;
-
 
   if(len(data) == 0){
     res.status(400).send();
     return;
   }
 
-  var updated = true;
-  var collection = req.db.get('travelcollection');
-  var error;
+  Travel.findOneAndUpdate({ _id: travelid, "experiences._id": mongoose.Types.ObjectId(experienceid) }, {
+    "$set": {
+      "experiences.$": data
+    }
+  },
+  function (err, docs) {
+    if(!err){
+      res.status(404).send();
+      return;
+    }
 
-  try {
-    collection.findOneAndUpdate({ "experiences._id": ObjectID(id)},  { "experiences": data});
-  } catch (err) {
-    error = err;
-    updated = false;
-  } finally {
-
-    if(updated) res.status(200).send("");
-    else res.status(501).send(JSON.stringify(error));
-
+    res.send(docs);
     return;
-  }
+  });
 });
-
 
 //delete experience
-router.delete('/v1/experiences', function(req, res, next){
+router.delete('/v1/travels/:travel/experiences/:experience', function(req, res, next){
+  var travelid = req.params.travel;
+  var experienceid = req.params.experience;
 
+  if(cutter.getBinarySize(experienceid) != 24 || cutter.getBinarySize(travelid) != 24){
+    res.status(400).send();
+    return;
+  }
+
+  Travel.findOneAndUpdate({ _id: travelid, "experiences._id": mongoose.Types.ObjectId(experienceid) }, {
+    "$set": {
+      "experiences.$.deleted": true
+    }
+  },
+  function (err, docs) {
+    if(!docs){
+      res.status(404).send();
+      return;
+    }
+    res.send(docs);
+    return;
+  });
 });
-
 
 module.exports = router;
