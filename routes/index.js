@@ -3,7 +3,7 @@ var router = express.Router();
 
 /* GET home page. */
 router.get('/', function (req, res, next) {
-  res.render('index', { title: 'Login 2', errMessage : req.flash('error')});
+  res.render('index', { title: 'Login', errMessage : req.flash('error')});
 });
 
 
