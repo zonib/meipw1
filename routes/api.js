@@ -265,7 +265,7 @@ router.put('/v1/travels/:travel/experiences/:experience', function(req, res, nex
   var travelid = req.params.travel;
   var experienceid = req.params.experience;
 
-  if(cutter.getBinarySize(travelid) != 24 || cutter.getBinarySize(experienceid) ){
+  if(cutter.getBinarySize(travelid) != 24 || cutter.getBinarySize(experienceid) != 24){
     res.status(400).send();
     return;
   }
