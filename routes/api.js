@@ -4,6 +4,7 @@ cutter = require('utf8-binary-cutter'),
 len = require('object-length'),
 ObjectId = require('mongodb').ObjectID,
 mongoose = require('mongoose');
+Travel = mongoose.model('Travel');
 // var Travels = require('../model/travel');
 // var ObjectID = require('mongodb').ObjectID;
 var router = express.Router();
@@ -222,7 +223,7 @@ router.post('/v1/travels/:travel/experiences/', function(req, res, next){
   if(narrative) data.narrative = narrative;
   if(gps) data.gps = gps;
 
-  mongoose.model('Travel').findById(travelid , function (err, docs) {
+  mongoose.model('Travel').findById(travelid, function (err, docs) {
     if(!docs){
       res.status(404).send();
       return;
@@ -249,27 +250,22 @@ router.get('/v1/travels/:travel/experiences/:experience', function(req, res, nex
     return;
   }
 
-  mongoose.model('Travel').findById(travelid , function (err, docs) {
-    if(!docs){
+  Travel.findOne({ _id: travelid, "experiences._id": mongoose.Types.ObjectId(experienceid), "experiences.deleted": { $ne: true} }, { "experiences.$" : 1}, function (err, docs) {
+    if(!docs.experiences[0]){
       res.status(404).send();
       return;
     }
-
-    // var ids = docs.map(function(el) { return el._id } );
-
-    // console.log(docs.experiences.pull({_id: experienceid}));
-    res.send(docs.experiences.pull(mongoose.Types.ObjectId(experienceid)));
+    res.send(docs.experiences[0]);
     return;
-    // docs.findById(exper)
   });
 });
 
-
 //update experience
-router.put('/v1/experiences/:experience', function(req, res, next){
-  var id = req.params.experience;
+router.put('/v1/travels/:travel/experiences/:experience', function(req, res, next){
+  var travelid = req.params.travel;
+  var experienceid = req.params.experience;
 
-  if(cutter.getBinarySize(id) != 24){
+  if(cutter.getBinarySize(travelid) != 24 || cutter.getBinarySize(experienceid) ){
     res.status(400).send();
     return;
   }
@@ -280,41 +276,55 @@ router.put('/v1/experiences/:experience', function(req, res, next){
   var gps = req.body.gps;
 
   var data = {};
-
   if(date) data.date = date;
   if(name) data.name = name;
   if(narrative) data.narrative = narrative;
   if(gps) data.gps = gps;
-
 
   if(len(data) == 0){
     res.status(400).send();
     return;
   }
 
-  var updated = true;
-  var collection = req.db.get('travelcollection');
-  var error;
+  Travel.findOneAndUpdate({ _id: travelid, "experiences._id": mongoose.Types.ObjectId(experienceid) }, {
+    "$set": {
+      "experiences.$": data
+    }
+  },
+  function (err, docs) {
+    if(!err){
+      res.status(404).send();
+      return;
+    }
 
-  try {
-    collection.findOneAndUpdate({ "experiences._id": ObjectID(id)},  { "experiences": data});
-  } catch (err) {
-    error = err;
-    updated = false;
-  } finally {
-
-    if(updated) res.status(200).send("");
-    else res.status(501).send(JSON.stringify(error));
-
+    res.send(docs);
     return;
-  }
+  });
 });
-
 
 //delete experience
-router.delete('/v1/experiences', function(req, res, next){
+router.delete('/v1/travels/:travel/experiences/:experience', function(req, res, next){
+  var travelid = req.params.travel;
+  var experienceid = req.params.experience;
 
+  if(cutter.getBinarySize(experienceid) != 24 || cutter.getBinarySize(travelid) != 24){
+    res.status(400).send();
+    return;
+  }
+
+  Travel.findOneAndUpdate({ _id: travelid, "experiences._id": mongoose.Types.ObjectId(experienceid) }, {
+    "$set": {
+      "experiences.$.deleted": true
+    }
+  },
+  function (err, docs) {
+    if(!docs){
+      res.status(404).send();
+      return;
+    }
+    res.send(docs);
+    return;
+  });
 });
-
 
 module.exports = router;
