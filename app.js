@@ -20,33 +20,33 @@ var index = require('./routes/index'),
 var app = express();
 
 
-//setupswaggerJSDoc
-var swaggerDefinition = {
-  info: {
-    title: 'travel diary API',
-    version: '1.0.0',
-    description: 'TP1 PW',
-  },
-  host: 'pwtraveldiary.herokuapp.com',
-  basePath: '/',
-};
-
-// options for the swagger docs
-var options = {
-  // import swaggerDefinitions
-  swaggerDefinition: swaggerDefinition,
-  // path to the API docs
-  apis: ['./routes/*.js'],
-};
-
-app.get('/swagger.json', function(req, res) {
-  res.setHeader('Content-Type', 'application/json');
-  res.send(swaggerSpec);
-});
-
-
-// initialize swagger-jsdoc
-var swaggerSpec = swaggerJSDoc(options);
+// //setupswaggerJSDoc
+// var swaggerDefinition = {
+//   info: {
+//     title: 'travel diary API',
+//     version: '1.0.0',
+//     description: 'TP1 PW',
+//   },
+//   host: 'pwtraveldiary.herokuapp.com',
+//   basePath: '/',
+// };
+//
+// // options for the swagger docs
+// var options = {
+//   // import swaggerDefinitions
+//   swaggerDefinition: swaggerDefinition,
+//   // path to the API docs
+//   apis: ['./routes/*.js'],
+// };
+//
+// app.get('/swagger.json', function(req, res) {
+//   res.setHeader('Content-Type', 'application/json');
+//   res.send(swaggerSpec);
+// });
+//
+//
+// // initialize swagger-jsdoc
+// var swaggerSpec = swaggerJSDoc(options);
 
 
 
