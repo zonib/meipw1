@@ -27,7 +27,7 @@ var swaggerDefinition = {
     version: '1.0.0',
     description: 'TP1 PW',
   },
-  host: 'localhost:3000',
+  host: 'pwtraveldiary.herokuapp.com',
   basePath: '/',
 };
 
