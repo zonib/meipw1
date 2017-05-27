@@ -67,7 +67,7 @@ var router = express.Router();
 
 
 //add new travel to database
-router.post('/v1/travels', function(req, res, next){
+router.post('/v1/travels/', function(req, res, next){
 
   //enable later! disabled while development
   // if(!req.session.userid){
