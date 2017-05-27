@@ -35,6 +35,37 @@ router.post('/v1/login', function(req, res, next){
   });
 });
 
+
+
+/**
+* @swagger
+* definition:
+*   Travel:
+*     definition:
+*       date:
+*         type: Date
+*       user:
+*         type: String
+*       description:
+*         type: String
+*       local:
+*         definition:
+*           city:
+*             type: String
+*           country:
+*             type: String
+*           gps:
+*             definition:
+*               lat:
+*                 type: Number
+*               lng:
+*                 type: Number
+*       deleted:
+*         type: Boolean
+*/
+
+
+
 //add new travel to database
 router.post('/v1/travels', function(req, res, next){
 
@@ -80,6 +111,21 @@ router.post('/v1/travels', function(req, res, next){
 });
 
 //get all travels
+/**
+* @swagger
+* /api/v1/travels:
+*   get:
+*     tags:
+*       - Travels
+*     description: Returns all Travels
+*     produces:
+*       - application/json
+*     responses:
+*       200:
+*         description: An array of travels
+*         schema:
+*           $ref: '#/definitions/Travel'
+*/
 router.get('/v1/travels', function(req, res, next){
 
   mongoose.model('Travel').find({deleted: {$ne: true}}, function (err, docs) {
