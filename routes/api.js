@@ -38,6 +38,23 @@ var router = express.Router();
 /**
 * @swagger
 * definition:
+*   Experience:
+*     type: object
+*     properties:
+*       date:
+*         type: string
+*         format: date-time
+*       narrative:
+*         type: string
+*       gps:
+*         $ref: '#/definitions/GPS'
+*       deleted:
+*         type: boolean
+*/
+
+/**
+* @swagger
+* definition:
 *   Travel:
 *     type: object
 *     properties:
@@ -50,6 +67,10 @@ var router = express.Router();
 *         type: string
 *       local:
 *         $ref: '#/definitions/Local'
+*       experiences:
+*         type: array
+*         items:
+*           $ref: '#/definitions/Experience'
 *       deleted:
 *         type: boolean
 */
@@ -174,7 +195,7 @@ router.get('/v1/travels', function(req, res, next){
 *     produces:
 *       - application/json
 *     parameters:
-*       - id: id
+*       - name: id
 *         description: Travels id
 *         in: path
 *         required: true
@@ -184,10 +205,10 @@ router.get('/v1/travels', function(req, res, next){
 *         description: A single travel
 *         schema:
 *           $ref: '#/definitions/Travel'
+*       204:
+*         description: travel not found
 *       400:
 *         description: bad requeste / invalid id
-*       404:
-*         description: travel not found
 */
 router.get('/v1/travels/:id', function(req, res, next){
   var id = req.params.id;
@@ -197,9 +218,9 @@ router.get('/v1/travels/:id', function(req, res, next){
     return;
   }
 
-  mongoose.model('Travel').findById(id , function (err, docs) {
+  mongoose.model('Travel').findById(id ,{deleted: {$ne: true}}, function (err, docs) {
     if(!docs){
-      res.status(404).send();
+      res.status(204).send();
       return;
     }
 
@@ -339,8 +360,35 @@ router.delete('/v1/travels/:id', function(req, res, next) {
 });
 
 //get travel experiences
-router.get('/v1/travels/:travel/experiences/', function(req, res, next){
-  var travel = req.params.travel;
+/**
+* @swagger
+* /api/v1/travels/{id}/experiences:
+*   get:
+*     tags:
+*       - Experiences
+*     description: Returns all Travel experiences
+*     parameters:
+*       - name: id
+*         description: Travels id
+*         in: path
+*         required: true
+*         type: string
+*     produces:
+*       - application/json
+*     responses:
+*       200:
+*         description: An array of travel experiences
+*         schema:
+*           type: array
+*           items:
+*             $ref: '#/definitions/Experience'
+*       204:
+*         description: no content / No experiences
+*       400:
+*         description: bad request / missing parameters
+*/
+router.get('/v1/travels/:id/experiences/', function(req, res, next){
+  var travel = req.params.id;
 
   if(cutter.getBinarySize(travel) != 24){
     res.status(400).send();
@@ -349,7 +397,7 @@ router.get('/v1/travels/:travel/experiences/', function(req, res, next){
 
   mongoose.model('Travel').findById(travel , function (err, docs) {
     if(!docs){
-      res.status(404).send();
+      res.status(204).send();
       return;
     }
 
@@ -359,9 +407,45 @@ router.get('/v1/travels/:travel/experiences/', function(req, res, next){
 });
 
 //add travel a experience
-router.post('/v1/travels/:travel/experiences/', function(req, res, next){
+/**
+* @swagger
+* /api/v1/travels/{id}/experiences:
+*   post:
+*     tags:
+*       - Experiences
+*     description: Creates a new experience on travel
+*     produces:
+*       - application/json
+*     parameters:
+*       - name: id
+*         description: travel id to add experience
+*         in: path
+*         required: true
+*       - name: narrative
+*         description: experience description
+*         in: body
+*         required: true
+*       - name: date
+*         description: experience date
+*         in: body
+*         required: true
+*       - name: gps
+*         description: experience coordinates
+*         in: body
+*         required: false
+*         schema:
+*           $ref: '#/definitions/GPS'
+*     responses:
+*       201:
+*         description: Successfully created
+*       400:
+*         description: bad requeste / missing parameters
+*       500:
+*         description: failed to create experience
+*/
+router.post('/v1/travels/:id/experiences/', function(req, res, next){
 
-  var travelid = req.params.travel;
+  var travelid = req.params.id;
 
   if(cutter.getBinarySize(travelid) != 24){
     res.status(400).send();
@@ -374,7 +458,7 @@ router.post('/v1/travels/:travel/experiences/', function(req, res, next){
   var gps = req.body.gps;
 
   if(!date || !name){
-    res.status('400').send(JSON.stringify({ error: { code: "0x0001"}}));
+    res.status(400).send(JSON.stringify({ error: { code: "0x0001"}}));
     return;
   }
 
@@ -387,15 +471,15 @@ router.post('/v1/travels/:travel/experiences/', function(req, res, next){
 
   mongoose.model('Travel').findById(travelid, function (err, docs) {
     if(!docs){
-      res.status(404).send();
+      res.status(204).send();
       return;
     }
 
     docs.experiences.push(data);
 
     docs.save(function (err) {
-      if (err) res.status('409').send();
-      res.status('201').send();
+      if (err) res.status(500).send();
+      res.status(201).send();
 
       return;
     });
@@ -403,9 +487,39 @@ router.post('/v1/travels/:travel/experiences/', function(req, res, next){
 });
 
 //get single experience
-router.get('/v1/travels/:travel/experiences/:experience', function(req, res, next){
-  var travelid = req.params.travel;
-  var experienceid = req.params.experience;
+/**
+* @swagger
+* /api/v1/travels/{id}/experiences/{eid}:
+*   get:
+*     tags:
+*       - Experiences
+*     description: Returns a single experience
+*     produces:
+*       - application/json
+*     parameters:
+*       - name: id
+*         description: Travels id
+*         in: path
+*         required: true
+*         type: string
+*       - name: eid
+*         description: experience id
+*         in: path
+*         required: true
+*         type: string
+*     responses:
+*       200:
+*         description: A single experience
+*         schema:
+*           $ref: '#/definitions/Experience'
+*       204:
+*         description: travel/experience not found
+*       400:
+*         description: bad requeste / invalid id's
+*/
+router.get('/v1/travels/:id/experiences/:eid', function(req, res, next){
+  var travelid = req.params.id;
+  var experienceid = req.params.eid;
 
   if(cutter.getBinarySize(experienceid) != 24 || cutter.getBinarySize(travelid) != 24){
     res.status(400).send();
@@ -423,7 +537,47 @@ router.get('/v1/travels/:travel/experiences/:experience', function(req, res, nex
 });
 
 //update experience
-router.put('/v1/travels/:travel/experiences/:experience', function(req, res, next){
+/**
+* @swagger
+* /api/v1/travels/{id}/experiences/{eid}:
+*   put:
+*     tags:
+*       - Experiences
+*     description: updates a experience
+*     produces:
+*       - application/json
+*     parameters:
+*       - name: id
+*         description: travel id to add experience
+*         in: path
+*         required: true
+*       - name: eid
+*         description: experience id to update
+*         in: path
+*         required: true
+*       - name: narrative
+*         description: experience description
+*         in: body
+*         required: true
+*       - name: date
+*         description: experience date
+*         in: body
+*         required: true
+*       - name: gps
+*         description: experience coordinates
+*         in: body
+*         required: false
+*         schema:
+*           $ref: '#/definitions/GPS'
+*     responses:
+*       201:
+*         description: Successfully created
+*       400:
+*         description: bad requeste / missing parameters
+*       500:
+*         description: failed to create experience
+*/
+router.put('/v1/travels/:id/experiences/:eid', function(req, res, next){
   var travelid = req.params.travel;
   var experienceid = req.params.experience;
 
@@ -455,7 +609,7 @@ router.put('/v1/travels/:travel/experiences/:experience', function(req, res, nex
   },
   function (err, docs) {
     if(!err){
-      res.status(404).send();
+      res.status(204).send();
       return;
     }
 
@@ -465,9 +619,39 @@ router.put('/v1/travels/:travel/experiences/:experience', function(req, res, nex
 });
 
 //delete experience
-router.delete('/v1/travels/:travel/experiences/:experience', function(req, res, next){
-  var travelid = req.params.travel;
-  var experienceid = req.params.experience;
+/**
+* @swagger
+* /api/v1/travels/{id}/experiences/{eid}:
+*   delete:
+*     tags:
+*       - Experiences
+*     description: delete a experience
+*     produces:
+*       - application/json
+*     parameters:
+*       - name: id
+*         description: Travels id
+*         in: path
+*         required: true
+*         type: string
+*       - name: eid
+*         description: experience id
+*         in: path
+*         required: true
+*         type: string
+*     responses:
+*       200:
+*         description: Successfully deleted
+*       204:
+*         description: travel/experience not found
+*       400:
+*         description: bad request / missing parameters
+*       500:
+*         description: failed to delete travel
+*/
+router.delete('/v1/travels/:id/experiences/:eid', function(req, res, next){
+  var travelid = req.params.id;
+  var experienceid = req.params.eid;
 
   if(cutter.getBinarySize(experienceid) != 24 || cutter.getBinarySize(travelid) != 24){
     res.status(400).send();
@@ -481,7 +665,7 @@ router.delete('/v1/travels/:travel/experiences/:experience', function(req, res, 
   },
   function (err, docs) {
     if(!docs){
-      res.status(404).send();
+      res.status(204).send();
       return;
     }
     res.send(docs);
