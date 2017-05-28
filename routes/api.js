@@ -9,71 +9,93 @@ Travel = mongoose.model('Travel');
 // var ObjectID = require('mongodb').ObjectID;
 var router = express.Router();
 
-// //Login method
-// router.post('/v1/login', function(req, res, next){
-//   var username = req.body.username;
-//   var pw = req.body.pw;
-//
-//   if(!username || !pw){
-//     res.status(400).send(JSON.stringify({ error:{ code: "0x0001"}}));
-//     return;
-//   }
-//
-//   var db = req.db;
-//   var collection = db.get('usercollection');
-//   collection.findOne({"username" : username, "pw": crypto.createHash('md5').update(pw).digest("hex") },{},function(e,docs){
-//     if(!docs){
-//       res.status(401).send(JSON.stringify({ error:{ code: "0x0002"}}));
-//       return;
-//     }
-//
-//     req.session.userid = docs._id;
-//     req.session.name = docs.name;
-//
-//     res.send(JSON.stringify({userid: docs._id, name: docs.name, age: docs.age}));
-//     return;
-//   });
-// });
+/**
+* @swagger
+* definition:
+*       GPS:
+*         type: object
+*         properties:
+*           lat:
+*             type: number
+*           lng:
+*             type: number
+*/
 
-
+/**
+* @swagger
+* definition:
+*   Local:
+*     type: object
+*     properties:
+*       city:
+*         type: string
+*       country:
+*         type: string
+*       gps:
+*         $ref: '#/definitions/GPS'
+*/
 
 /**
 * @swagger
 * definition:
 *   Travel:
-*     definition:
+*     type: object
+*     properties:
 *       date:
-*         type: Date
+*         type: string
+*         format: date-time
 *       user:
-*         type: String
+*         type: string
 *       description:
-*         type: String
+*         type: string
 *       local:
-*         definition:
-*           city:
-*             type: String
-*           country:
-*             type: String
-*           gps:
-*             definition:
-*               lat:
-*                 type: Number
-*               lng:
-*                 type: Number
+*         $ref: '#/definitions/Local'
 *       deleted:
-*         type: Boolean
+*         type: boolean
 */
 
-
-
 //add new travel to database
+/**
+* @swagger
+* /api/v1/travels:
+*   post:
+*     tags:
+*       - Travels
+*     description: Creates a new travel
+*     produces:
+*       - application/json
+*     parameters:
+*       - name: description
+*         description: travel description
+*         in: body
+*         required: true
+*       - name: date
+*         description: travel date
+*         in: body
+*         required: true
+*       - name: city
+*         description: travel city destination
+*         in: body
+*         required: true
+*       - name: country
+*         description: travel country destination
+*         in: body
+*         required: true
+*       - name: gps
+*         description: travel coordinates
+*         in: body
+*         required: false
+*         schema:
+*           $ref: '#/definitions/GPS'
+*     responses:
+*       201:
+*         description: Successfully created
+*       400:
+*         description: bad requeste / missing parameters
+*       500:
+*         description: failed to add travel
+*/
 router.post('/v1/travels/', function(req, res, next){
-
-  //enable later! disabled while development
-  // if(!req.session.userid){
-  //   res.status('403').send(JSON.stringify({error: { code: "0x0000"}}));
-  //   return;
-  // }
 
   var description = req.body.description;
   var date = req.body.date;
@@ -99,7 +121,7 @@ router.post('/v1/travels/', function(req, res, next){
 
   mongoose.model('Travel').create(data, function(err, obj) {
     if(err){
-      res.status('409').send();
+      res.status('500').send();
     }
     else {
       res.status('201').send();
@@ -125,12 +147,14 @@ router.post('/v1/travels/', function(req, res, next){
 *         description: An array of travels
 *         schema:
 *           $ref: '#/definitions/Travel'
+*       204:
+*         description: no content / No travels
 */
 router.get('/v1/travels', function(req, res, next){
 
   mongoose.model('Travel').find({deleted: {$ne: true}}, function (err, docs) {
     if(!docs){
-      res.status(404).send();
+      res.status(204).send();
       return;
     }
 
@@ -140,6 +164,31 @@ router.get('/v1/travels', function(req, res, next){
 });
 
 //get single travel
+/**
+* @swagger
+* /api/v1/travels/{id}:
+*   get:
+*     tags:
+*       - Travels
+*     description: Returns a single travel
+*     produces:
+*       - application/json
+*     parameters:
+*       - id: id
+*         description: Travels id
+*         in: path
+*         required: true
+*         type: string
+*     responses:
+*       200:
+*         description: A single travel
+*         schema:
+*           $ref: '#/definitions/Travel'
+*       400:
+*         description: bad requeste / invalid id
+*       404:
+*         description: travel not found
+*/
 router.get('/v1/travels/:id', function(req, res, next){
   var id = req.params.id;
 
@@ -160,6 +209,49 @@ router.get('/v1/travels/:id', function(req, res, next){
 });
 
 //update travel
+//add new travel to database
+/**
+* @swagger
+* /api/v1/travels/{id}:
+*   put:
+*     tags:
+*       - Travels
+*     description: updates a travel
+*     produces:
+*       - application/json
+*     parameters:
+*       - name: id
+*         description: travels id
+*         in: path
+*         required: true
+*       - name: description
+*         description: travel description
+*         in: body
+*         required: false
+*       - name: city
+*         description: travel city destination
+*         in: body
+*         required: false
+*       - name: country
+*         description: travel country destination
+*         in: body
+*         required: false
+*       - name: gps
+*         description: travel coordinates
+*         in: body
+*         required: false
+*         schema:
+*           $ref: '#/definitions/GPS'
+*     responses:
+*       200:
+*         description: Successfully updated
+*       204:
+*         description: travel not found
+*       400:
+*         description: bad request / missing parameters
+*       500:
+*         description: failed to update travel
+*/
 router.put('/v1/travels/:id', function(req, res, next){
   var id = req.params.id;
 
@@ -190,7 +282,7 @@ router.put('/v1/travels/:id', function(req, res, next){
     }
 
     obj.update(data, function (err, blobID) {
-      if(err) res.status(501).send();
+      if(err) res.status(500).send();
       else res.status(200).send();
 
       return;
@@ -199,6 +291,30 @@ router.put('/v1/travels/:id', function(req, res, next){
 });
 
 //delete travel
+/**
+* @swagger
+* /api/v1/travels/{id}:
+*   delete:
+*     tags:
+*       - Travels
+*     description: delete a travel
+*     produces:
+*       - application/json
+*     parameters:
+*       - name: id
+*         description: travels id
+*         in: path
+*         required: true
+*     responses:
+*       200:
+*         description: Successfully deleted
+*       204:
+*         description: travel not found
+*       400:
+*         description: bad request / missing parameters
+*       500:
+*         description: failed to delete travel
+*/
 router.delete('/v1/travels/:id', function(req, res, next) {
   var id = req.params.id;
 
@@ -209,12 +325,12 @@ router.delete('/v1/travels/:id', function(req, res, next) {
 
   mongoose.model('Travel').findById(id , function (err, obj) {
     if(!obj){
-      res.status(404).send();
+      res.status(204).send();
       return;
     }
 
     obj.update({deleted: true}, function (err, blobID) {
-      if(err) res.status(501).send();
+      if(err) res.status(500).send();
       else res.status(200).send();
 
       return;
