@@ -607,7 +607,7 @@ router.post('/v1/travels/:id/experiences/', function(req, res, next){
 *         description: travel id to add experience
 *         in: path
 *         required: true
-*       - name: experience
+*       - name: body
 *         description: experience object
 *         in: body
 *         required: true
@@ -624,7 +624,7 @@ router.post('/v1/travels/:id/experiences/', function(req, res, next){
 router.post('/v2/travels/:id/experiences/', function(req, res, next){
 
   var travelid = req.params.id;
-    var experience = req.body.experience;
+    var experience = req.body;
 
   if(cutter.getBinarySize(travelid) != 24){
     res.status(400).send();
