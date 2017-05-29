@@ -156,7 +156,7 @@ router.post('/v1/travels/', function(req, res, next){
 //add new travel to database
 /**
 * @swagger
-* /api/v1/travels:
+* /api/v2/travels:
 *   post:
 *     tags:
 *       - Travels
@@ -199,7 +199,6 @@ router.post('/v2/travels/', function(req, res, next){
   })
 
 });
-
 
 //get all travels
 /**
