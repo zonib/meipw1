@@ -414,6 +414,8 @@ router.get('/v1/travels/:id/experiences/', function(req, res, next){
 *     tags:
 *       - Experiences
 *     description: Creates a new experience on travel
+*     consumes:
+*       - application/json
 *     produces:
 *       - application/json
 *     parameters:
