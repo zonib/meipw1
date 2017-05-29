@@ -365,6 +365,10 @@ router.put('/v1/travels/:id', function(req, res, next){
 *     produces:
 *       - application/json
 *     parameters:
+*       - name: id
+*         description: travels id
+*         in: path
+*         required: true
 *       - name: travel
 *         description: travel coordinates
 *         in: body
