@@ -158,7 +158,7 @@ router.post('/v1/travels/', function(req, res, next){
 
 });
 
-//add new travel to database
+//add new travel to database V2
 /**
 * @swagger
 * /api/v2/travels:
@@ -354,7 +354,7 @@ router.put('/v1/travels/:id', function(req, res, next){
   });
 });
 
-//update travel
+//update travel V2
 /**
 * @swagger
 * /api/v2/travels/{id}:
@@ -591,6 +591,71 @@ router.post('/v1/travels/:id/experiences/', function(req, res, next){
   });
 });
 
+//add travel a experience V2
+/**
+* @swagger
+* /api/v2/travels/{id}/experiences:
+*   post:
+*     tags:
+*       - Experiences
+*     description: Creates a new experience on travel
+*     consumes:
+*       - application/json
+*     produces:
+*       - application/json
+*     parameters:
+*       - name: id
+*         description: travel id to add experience
+*         in: path
+*         required: true
+*       - name: experience
+*         description: experience object
+*         in: body
+*         required: true
+*         schema:
+*           $ref: '#/definitions/Experience'
+*     responses:
+*       201:
+*         description: Successfully created
+*       400:
+*         description: bad requeste / missing parameters
+*       500:
+*         description: failed to create experience
+*/
+router.post('/v2/travels/:id/experiences/', function(req, res, next){
+
+  var travelid = req.params.id;
+    var experience = req.body.experience;
+
+  if(cutter.getBinarySize(travelid) != 24){
+    res.status(400).send();
+    return;
+  }
+
+  if(experience.length == 0){
+    res.status(400).send(JSON.stringify({ error: { code: "0x0001"}}));
+    return;
+  }
+
+  experience._id = mongoose.Types.ObjectId(),
+
+  mongoose.model('Travel').findById(travelid, function (err, docs) {
+    if(!docs){
+      res.status(204).send({});
+      return;
+    }
+
+    docs.experiences.push(experience);
+
+    docs.save(function (err) {
+      if (err) res.status(500).send({});
+      res.status(201).send({});
+
+      return;
+    });
+  });
+});
+
 //get single experience
 /**
 * @swagger
@@ -681,6 +746,7 @@ router.get('/v1/travels/:id/experiences/:eid', function(req, res, next){
 *         description: bad requeste / missing parameters
 *       500:
 *         description: failed to create experience
+*     deprecated: true
 */
 router.put('/v1/travels/:id/experiences/:eid', function(req, res, next){
   var travelid = req.params.travel;
@@ -719,6 +785,70 @@ router.put('/v1/travels/:id/experiences/:eid', function(req, res, next){
     }
 
     res.send(docs);
+    return;
+  });
+});
+
+//update experience V2
+/**
+* @swagger
+* /api/v2/travels/{id}/experiences/{eid}:
+*   put:
+*     tags:
+*       - Experiences
+*     description: updates a experience
+*     produces:
+*       - application/json
+*     parameters:
+*       - name: id
+*         description: travel id to add experience
+*         in: path
+*         required: true
+*       - name: eid
+*         description: experience id to update
+*         in: path
+*         required: true
+*       - name: experience
+*         description: experience coordinates
+*         in: body
+*         required: true
+*         schema:
+*           $ref: '#/definitions/Experience'
+*     responses:
+*       20:
+*         description: Successfully updated
+*       400:
+*         description: bad requeste / missing parameters
+*       500:
+*         description: failed to create experience
+*/
+router.put('/v1/travels/:id/experiences/:eid', function(req, res, next){
+  var travelid = req.params.travel;
+  var experienceid = req.params.experience;
+  var experience = req.body.experience;
+
+  if(cutter.getBinarySize(travelid) != 24 || cutter.getBinarySize(experienceid) != 24){
+    res.status(400).send();
+    return;
+  }
+
+  if(len(experience) == 0){
+    res.status(400).send({});
+    return;
+  }
+
+  Travel.findOneAndUpdate({ _id: travelid, "experiences._id": mongoose.Types.ObjectId(experienceid) }, {
+    "$set": {
+      "experiences.$": experience
+    }
+  },
+  function (err, docs) {
+    if(!err){
+      res.status(204).send({});
+      return;
+    }
+
+    res.status(200).send({});
     return;
   });
 });
