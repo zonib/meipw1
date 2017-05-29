@@ -65,24 +65,6 @@ var router = express.Router();
 /**
 * @swagger
 * definition:
-*   TravelInput:
-*     type: object
-*     properties:
-*       date:
-*         type: string
-*         format: date-time
-*       user:
-*         type: string
-*       description:
-*         type: string
-*       local:
-*         $ref: '#/definitions/Local'
-*/
-
-
-/**
-* @swagger
-* definition:
 *   Travel:
 *     type: object
 *     properties:
@@ -95,12 +77,6 @@ var router = express.Router();
 *         type: string
 *       local:
 *         $ref: '#/definitions/Local'
-*       experiences:
-*         type: array
-*         items:
-*           $ref: '#/definitions/Experience'
-*       deleted:
-*         type: boolean
 */
 
 //add new travel to database
@@ -198,7 +174,7 @@ router.post('/v1/travels/', function(req, res, next){
 *         in: body
 *         required: true
 *         schema:
-*           $ref: '#/definitions/TravelInput'
+*           $ref: '#/definitions/Travel'
 *     responses:
 *       201:
 *         description: Successfully created
@@ -394,7 +370,7 @@ router.put('/v1/travels/:id', function(req, res, next){
 *         in: body
 *         required: false
 *         schema:
-*           $ref: '#/definitions/TravelInput'
+*           $ref: '#/definitions/Travel'
 *     responses:
 *       200:
 *         description: Successfully updated
