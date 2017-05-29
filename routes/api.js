@@ -12,6 +12,16 @@ var router = express.Router();
 /**
 * @swagger
 * definition:
+*       Error:
+*         type: object
+*         properties:
+*           code:
+*             type: string
+*/
+
+/**
+* @swagger
+* definition:
 *       GPS:
 *         type: object
 *         properties:
