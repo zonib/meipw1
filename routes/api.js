@@ -180,7 +180,7 @@ router.post('/v1/travels/', function(req, res, next){
 */
 router.post('/v2/travels/', function(req, res, next){
 
-  var travel = req.body.travel;
+  var travel = req.body;
 
   if(!travel.description || !travel.date || !travel.local){
     res.status('400').send(JSON.stringify({ error: { code: "0x0001"}}));
