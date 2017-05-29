@@ -496,7 +496,7 @@ router.get('/v1/travels/:id/experiences/', function(req, res, next){
     return;
   }
 
-  mongoose.model('Travel').findById(travel , function (err, docs) {
+  mongoose.model('Travel').findOne({ _id: travel, "experiences.deleted": { $ne: true} }, { "experiences.$" : 1}, function (err, docs) {
     if(!docs){
       res.status(204).send();
       return;
