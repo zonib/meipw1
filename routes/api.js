@@ -108,6 +108,7 @@ var router = express.Router();
 *         required: false
 *         schema:
 *           $ref: '#/definitions/GPS'
+*     deprecated: true
 *     responses:
 *       201:
 *         description: Successfully created
