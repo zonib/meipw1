@@ -116,7 +116,7 @@ var router = express.Router();
 *     produces:
 *       - application/json
 *     parameters:
-*       - name: user
+*       - name: body
 *         description: user object
 *         in: body
 *         required: true
@@ -130,7 +130,7 @@ var router = express.Router();
 *       500:
 *         description: failed to add travel
 */
-router.post('/v1/users', function(req, res, next){
+router.post('/v1/users/', function(req, res, next){
   var user = req.body;
 
   if(len(user) == 0){
@@ -575,7 +575,7 @@ router.get('/v1/travels/:id/experiences/', function(req, res, next){
       return;
     }
 
-    res.send(docs);
+    res.send(docs.experiences);
     return;
   });
 });
@@ -974,10 +974,10 @@ router.delete('/v1/travels/:id/experiences/:eid', function(req, res, next){
   },
   function (err, docs) {
     if(!docs){
-      res.status(204).send();
+      res.status(204).send({});
       return;
     }
-    res.status(200).send();
+    res.status(200).send({});
     return;
   });
 });
