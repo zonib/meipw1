@@ -814,7 +814,7 @@ router.put('/v1/travels/:id/experiences/:eid', function(req, res, next){
 *         schema:
 *           $ref: '#/definitions/Experience'
 *     responses:
-*       20:
+*       200:
 *         description: Successfully updated
 *       400:
 *         description: bad requeste / missing parameters
