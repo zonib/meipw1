@@ -296,20 +296,12 @@ router.get('/v1/travels/:id', function(req, res, next){
 *         description: travel description
 *         in: body
 *         required: false
-*       - name: city
-*         description: travel city destination
-*         in: body
-*         required: false
-*       - name: country
-*         description: travel country destination
-*         in: body
-*         required: false
-*       - name: gps
+*       - name: local
 *         description: travel coordinates
 *         in: body
 *         required: false
 *         schema:
-*           $ref: '#/definitions/GPS'
+*           $ref: '#/definitions/Local'
 *     responses:
 *       200:
 *         description: Successfully updated
@@ -330,12 +322,11 @@ router.put('/v1/travels/:id', function(req, res, next){
 
   var fields = 0;
   var data = { };
-  data.local = {};
 
   if(req.body.description) data.description = req.body.description;
   if(req.body.country) data.local.country = req.body.country;
   if(req.body.city) data.local.city = req.body.city;
-  if(req.body.gps) data.local.gps = req.body.gps;
+  if(req.body.local) data.local.local = req.body.local;
 
 
   if(data.length == 0){
