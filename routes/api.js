@@ -33,7 +33,7 @@ var router = express.Router();
 *           district:
 *             type: string
 *           pwd:
-*             type: password
+*             type: string
 */
 
 /**
