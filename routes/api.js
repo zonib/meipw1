@@ -153,6 +153,54 @@ router.post('/v1/travels/', function(req, res, next){
 
 });
 
+//add new travel to database
+/**
+* @swagger
+* /api/v1/travels:
+*   post:
+*     tags:
+*       - Travels
+*     description: Creates a new travel
+*     produces:
+*       - application/json
+*     parameters:
+*       - name: travel
+*         description: travel object
+*         in: body
+*         required: true
+*         schema:
+*           $ref: '#/definitions/Travel'
+*     responses:
+*       201:
+*         description: Successfully created
+*       400:
+*         description: bad requeste / missing parameters
+*       500:
+*         description: failed to add travel
+*/
+router.post('/v2/travels/', function(req, res, next){
+
+  var travel = req.body.travel;
+
+  if(!travel.description || !travel.date || !travel.local){
+    res.status('400').send(JSON.stringify({ error: { code: "0x0001"}}));
+    return;
+  }
+
+  mongoose.model('Travel').create(travel, function(err, obj) {
+    if(err){
+      res.status('500').send({});
+    }
+    else {
+      res.status('201').send({});
+    }
+
+    return;
+  })
+
+});
+
+
 //get all travels
 /**
 * @swagger
