@@ -218,7 +218,7 @@ router.get('/v1/travels/:id', function(req, res, next){
     return;
   }
 
-  mongoose.model('Travel').find({_id:id,  "deleted": { $ne: true }}, function (err, docs) {
+  mongoose.model('Travel').findOne({_id:id,  "deleted": { $ne: true }}, function (err, docs) {
     if(!docs){
       res.status(204).send();
       return;
