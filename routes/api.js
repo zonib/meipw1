@@ -624,14 +624,14 @@ router.post('/v1/travels/:id/experiences/', function(req, res, next){
 router.post('/v2/travels/:id/experiences/', function(req, res, next){
 
   var travelid = req.params.id;
-    var experience = req.body;
+  var experience = req.body;
 
   if(cutter.getBinarySize(travelid) != 24){
     res.status(400).send();
     return;
   }
 
-  if(experience.length == 0){
+  if(len(experience) == 0){
     res.status(400).send(JSON.stringify({ error: { code: "0x0001"}}));
     return;
   }
