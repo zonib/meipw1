@@ -58,8 +58,6 @@ var router = express.Router();
 *         type: string
 *       gps:
 *         $ref: '#/definitions/GPS'
-*       deleted:
-*         type: boolean
 */
 
 /**
@@ -547,6 +545,7 @@ router.get('/v1/travels/:id/experiences/', function(req, res, next){
 *         description: bad requeste / missing parameters
 *       500:
 *         description: failed to create experience
+*     deprecated: true
 */
 router.post('/v1/travels/:id/experiences/', function(req, res, next){
 
