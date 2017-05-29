@@ -322,6 +322,7 @@ router.get('/v1/travels/:id', function(req, res, next){
 *         description: bad request / missing parameters
 *       500:
 *         description: failed to update travel
+*     deprecated: true
 */
 router.put('/v1/travels/:id', function(req, res, next){
   var id = req.params.id;
@@ -339,6 +340,62 @@ router.put('/v1/travels/:id', function(req, res, next){
   if(req.body.city) data.local.city = req.body.city;
   if(req.body.local) data.local.local = req.body.local;
 
+
+  if(data.length == 0){
+    res.status(400).send();
+    return;
+  }
+
+  mongoose.model('Travel').findById(id , function (err, obj) {
+    if(!obj){
+      res.status(404).send();
+      return;
+    }
+
+    obj.update(data, function (err, blobID) {
+      if(err) res.status(500).send();
+      else res.status(200).send();
+
+      return;
+    });
+  });
+});
+
+//update travel
+/**
+* @swagger
+* /api/v2/travels/{id}:
+*   put:
+*     tags:
+*       - Travels
+*     description: updates a travel
+*     produces:
+*       - application/json
+*     parameters:
+*       - name: travel
+*         description: travel coordinates
+*         in: body
+*         required: false
+*         schema:
+*           $ref: '#/definitions/Travel'
+*     responses:
+*       200:
+*         description: Successfully updated
+*       204:
+*         description: travel not found
+*       400:
+*         description: bad request / missing parameters
+*       500:
+*         description: failed to update travel
+*/
+router.put('/v2/travels/:id', function(req, res, next){
+  var id = req.params.id;
+  var data = req.body.travel;
+
+  if(cutter.getBinarySize(id) != 24){
+    res.status(400).send();
+    return;
+  }
 
   if(data.length == 0){
     res.status(400).send();
