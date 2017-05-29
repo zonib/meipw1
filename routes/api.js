@@ -647,7 +647,7 @@ router.post('/v2/travels/:id/experiences/', function(req, res, next){
     docs.experiences.push(experience);
 
     docs.save(function (err) {
-      if (err) res.status(500).send({});
+      if (err) res.status(500).send(JSON.stringify(err));
       res.status(201).send({});
 
       return;
