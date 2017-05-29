@@ -189,7 +189,7 @@ router.post('/v2/travels/', function(req, res, next){
 
   mongoose.model('Travel').create(travel, function(err, obj) {
     if(err){
-      res.status('500').send({});
+      res.status('500').send(JSON.stringify(err));
     }
     else {
       res.status('201').send({});
