@@ -5,9 +5,36 @@ len = require('object-length'),
 ObjectId = require('mongodb').ObjectID,
 mongoose = require('mongoose');
 Travel = mongoose.model('Travel');
+User = mongoose.model('User');
+Experience = mongoose.model('Experience');
 // var Travels = require('../model/travel');
 // var ObjectID = require('mongodb').ObjectID;
 var router = express.Router();
+
+/**
+* @swagger
+* definition:
+*       User:
+*         type: object
+*         properties:
+*           email:
+*             type: string
+*           firstName:
+*             type: string
+*           lastName:
+*             type: string
+*           birthdate:
+*             type: string
+*             format: date-time
+*           country:
+*             type: string
+*           city:
+*             type: string
+*           district:
+*             type: string
+*           pwd:
+*             type: password
+*/
 
 /**
 * @swagger
@@ -76,6 +103,52 @@ var router = express.Router();
 *       local:
 *         $ref: '#/definitions/Local'
 */
+
+
+//registuser
+/**
+* @swagger
+* /api/v1/users:
+*   post:
+*     tags:
+*       - Users
+*     description: Creates a new user
+*     produces:
+*       - application/json
+*     parameters:
+*       - name: user
+*         description: user object
+*         in: body
+*         required: true
+*         schema:
+*           $ref: '#/definitions/User'
+*     responses:
+*       201:
+*         description: Successfully created
+*       400:
+*         description: bad requeste / missing parameters
+*       500:
+*         description: failed to add travel
+*/
+router.post('/v1/users', function(req, res, next){
+  var user = req.body;
+
+  if(len(user) == 0){
+    res.status('400').send(JSON.stringify({ error: { code: "0x0001"}}));
+    return;
+  }
+
+  User.create(user, function(err, obj) {
+    if(err){
+      res.status('500').send(JSON.stringify(err));
+    }
+    else {
+      res.status('201').send({});
+    }
+
+    return;
+  });
+});
 
 //add new travel to database
 /**
@@ -496,13 +569,13 @@ router.get('/v1/travels/:id/experiences/', function(req, res, next){
     return;
   }
 
-  mongoose.model('Travel').findOne({ _id: travel, "experiences.deleted": { $ne: true} }, { "experiences.$" : 1}, function (err, docs) {
+  mongoose.model('Travel').findOne({'_id': travel, 'experiences.deleted': { $ne: true} }, function (err, docs) {
     if(!docs){
-      res.status(204).send();
+      res.status(204).send(docs);
       return;
     }
 
-    res.send(docs.experiences);
+    res.send(docs);
     return;
   });
 });
@@ -696,8 +769,8 @@ router.get('/v1/travels/:id/experiences/:eid', function(req, res, next){
   }
 
   Travel.findOne({ _id: travelid, "experiences._id": mongoose.Types.ObjectId(experienceid), "experiences.deleted": { $ne: true} }, { "experiences.$" : 1}, function (err, docs) {
-    if(!docs.experiences[0]){
-      res.status(404).send();
+    if(!docs){
+      res.status(204).send(docs);
       return;
     }
     res.send(docs.experiences[0]);
@@ -807,7 +880,7 @@ router.put('/v1/travels/:id/experiences/:eid', function(req, res, next){
 *         description: experience id to update
 *         in: path
 *         required: true
-*       - name: experience
+*       - name: body
 *         description: experience coordinates
 *         in: body
 *         required: true
@@ -821,20 +894,22 @@ router.put('/v1/travels/:id/experiences/:eid', function(req, res, next){
 *       500:
 *         description: failed to create experience
 */
-router.put('/v1/travels/:id/experiences/:eid', function(req, res, next){
-  var travelid = req.params.travel;
-  var experienceid = req.params.experience;
-  var experience = req.body.experience;
+router.put('/v2/travels/:id/experiences/:eid', function(req, res, next){
+  var travelid = req.params.id;
+  var experienceid = req.params.eid;
+  var experience = req.body;
 
   if(cutter.getBinarySize(travelid) != 24 || cutter.getBinarySize(experienceid) != 24){
-    res.status(400).send();
+    res.status(400).send(2);
     return;
   }
 
   if(len(experience) == 0){
-    res.status(400).send({});
+    res.status(400).send(1);
     return;
   }
+
+  experience._id = mongoose.Types.ObjectId(experienceid);
 
   Travel.findOneAndUpdate({ _id: travelid, "experiences._id": mongoose.Types.ObjectId(experienceid) }, {
     "$set": {
@@ -842,7 +917,7 @@ router.put('/v1/travels/:id/experiences/:eid', function(req, res, next){
     }
   },
   function (err, docs) {
-    if(!err){
+    if(err){
       res.status(204).send({});
       return;
     }
@@ -902,7 +977,7 @@ router.delete('/v1/travels/:id/experiences/:eid', function(req, res, next){
       res.status(204).send();
       return;
     }
-    res.send(docs);
+    res.status(200).send();
     return;
   });
 });

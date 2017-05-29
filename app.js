@@ -10,6 +10,7 @@ var swaggerJSDoc = require('swagger-jsdoc');
 
 var db = require('./model/db'),
   travel = require('./model/travels'),
+  user = require('./model/user')
   experience = require('./model/experiences');
 
 var index = require('./routes/index'),
@@ -28,6 +29,7 @@ var swaggerDefinition = {
     description: 'TP1 PW',
   },
   // host: 'zeus:3000',
+  // host: 'localhost:3000',
   host: 'pwtraveldiary.herokuapp.com',
   basePath: '/',
 };
