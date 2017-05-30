@@ -9,6 +9,10 @@ var experienceSchema = new mongoose.Schema({
   classifications: {type: Array, default:[]}
 }, { _id: true } );
 
+experienceSchema.methods.delete = function(callback){
+  this.deleted = true;
+  callback();
+}
 
 module.exports = experienceSchema;
 mongoose.model('Experience', experienceSchema);

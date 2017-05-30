@@ -527,11 +527,8 @@ router.delete('/v1/travels/:id', function(req, res, next) {
       return;
     }
 
-    obj.update({deleted: true}, function (err, blobID) {
-      if(err) res.status(500).send();
-      else res.status(200).send();
-
-      return;
+    obj.delete(function () {
+      res.status(200).send({});
     });
   });
 });
@@ -572,13 +569,17 @@ router.get('/v1/travels/:id/experiences/', function(req, res, next){
     return;
   }
 
-  mongoose.model('Travel').findOne({'_id': travel, 'experiences.deleted': { $ne: true} }, function (err, docs) {
+  Travel.findById(travel, function (err, docs) {
     if(!docs){
       res.status(204).send(docs);
       return;
     }
 
-    res.send(docs.experiences);
+    var rExp = [];
+
+    for(var i = 0, s = docs.experiences.length; i < s; i++) if(!docs.experiences[i].deleted) rExp.push(docs.experiences[i]);
+
+    res.send(rExp);
     return;
   });
 });
@@ -771,13 +772,18 @@ router.get('/v1/travels/:id/experiences/:eid', function(req, res, next){
     return;
   }
 
-  Travel.findOne({ _id: travelid, "experiences._id": mongoose.Types.ObjectId(experienceid), "experiences.deleted": { $ne: true} }, { "experiences.$" : 1}, function (err, docs) {
-    if(!docs){
-      res.status(204).send(docs);
+  Travel.findById(travelid, function(err, obj){
+    if(err){
+      res.status(204).send(err);
       return;
     }
-    res.send(docs.experiences[0]);
-    return;
+
+    exp = obj.experiences.id(experienceid);
+    if(!exp || exp.deleted == true){
+      res.status(204).send({});
+      return;
+    }
+    res.status(200).send(exp);
   });
 });
 
@@ -912,49 +918,25 @@ router.put('/v2/travels/:id/experiences/:eid', function(req, res, next){
     return;
   }
 
-  // experience._id = mongoose.Types.ObjectId(experienceid);
-
   Travel.findById(travelid, function(err, obj){
     if(err){
-        res.status(204).send(err);
-        return;
-      }
-      
-    res.send(obj.experiences.id(experienceid));
-    return;
+      res.status(204).send(err);
+      return;
+    }
+
+    exp = obj.experiences.id(experienceid);
+    if(!exp || exp.deleted == true){
+      res.status(204).send({});
+      return;
+    }
+
+    exp.update(experience, function (err, blobID) {
+      if(err) res.status(500).send({});
+      else res.status(200).send({});
+
+      return;
+    });
   });
-
-
-  // Travel.findOnde({ _id: travelid, "experiences._id": mongoose.Types.ObjectId(experienceid) } , function (err, obj) {
-  //   if(!obj){
-  //     res.status(204).send();
-  //     return;
-  //   }
-  //
-  //   // res.status(204).send();
-  //   // return;
-  //   obj.update(travel, function (err, blobID) {
-  //     if(err) res.status(500).send({});
-  //     else res.status(200).send({});
-  //
-  //     return;
-  //   });
-  // });
-
-  // Travel.findOneAndUpdate({ _id: travelid, "experiences._id": mongoose.Types.ObjectId(experienceid) }, {
-  //   "$set": {
-  //     "experiences.$": experience
-  //   }
-  // },
-  // function (err, docs) {
-  //   if(err){
-  //     res.status(204).send({});
-  //     return;
-  //   }
-  //
-  //   res.status(200).send({});
-  //   return;
-  // });
 });
 
 //delete experience
@@ -997,19 +979,38 @@ router.delete('/v1/travels/:id/experiences/:eid', function(req, res, next){
     return;
   }
 
-  Travel.findOneAndUpdate({ _id: travelid, "experiences._id": mongoose.Types.ObjectId(experienceid) }, {
-    "$set": {
-      "experiences.$.deleted": true
+  Travel.findById(travelid, function(err, obj){
+    if(err){
+      res.status(204).send(err);
+      return;
     }
-  },
-  function (err, docs) {
-    if(!docs){
+
+    exp = obj.experiences.id(experienceid);
+    if(!exp){
       res.status(204).send({});
       return;
     }
-    res.status(200).send({});
-    return;
+
+    exp.delete(function () {
+      res.status(200).send({});
+      return;
+    });
   });
+
+
+  // Travel.findOneAndUpdate({ _id: travelid, "experiences._id": mongoose.Types.ObjectId(experienceid) }, {
+  //   "$set": {
+  //     "experiences.$.deleted": true
+  //   }
+  // },
+  // function (err, docs) {
+  //   if(!docs){
+  //     res.status(204).send({});
+  //     return;
+  //   }
+  //   res.status(200).send({});
+  //   return;
+  // });
 });
 
 module.exports = router;

@@ -14,4 +14,18 @@ var travelSchema = new mongoose.Schema({
   deleted: Boolean
 });
 
+
+travelSchema.methods.delete = function(callback){
+  this.deleted = true;
+  callback();
+}
+
+travelSchema.methods.getExperiences = function(callback){
+  // this.experiences.find({"experiences.deleted": { $ne: true}}, function(err, obj){
+  //     callback(err, obj);
+  // });
+}
+
+
+
 mongoose.model('Travel', travelSchema);
