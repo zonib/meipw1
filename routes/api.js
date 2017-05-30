@@ -8,13 +8,11 @@ User = mongoose.model('User');
 Experience = mongoose.model('Experience');
 Travel = mongoose.model('Travel');
 
-// var Travels = require('../model/travel');
-// var ObjectID = require('mongodb').ObjectID;
 var router = express.Router();
 
 /**
 * @swagger
-* properties:
+* definition:
 *       User:
 *         type: object
 *         properties:
@@ -39,7 +37,7 @@ var router = express.Router();
 
 /**
 * @swagger
-* properties:
+* definition:
 *       Error:
 *         type: object
 *         properties:
@@ -49,7 +47,7 @@ var router = express.Router();
 
 /**
 * @swagger
-* properties:
+* definition:
 *       GPS:
 *         type: object
 *         properties:
@@ -61,7 +59,7 @@ var router = express.Router();
 
 /**
 * @swagger
-* properties:
+* definition:
 *   Local:
 *     type: object
 *     properties:
@@ -75,7 +73,7 @@ var router = express.Router();
 
 /**
 * @swagger
-* properties:
+* definition:
 *   Experience:
 *     type: object
 *     properties:
@@ -90,7 +88,7 @@ var router = express.Router();
 
 /**
 * @swagger
-* properties:
+* definition:
 *   Travel:
 *     type: object
 *     properties:
@@ -176,32 +174,6 @@ router.post('v1/users/login', function(req, res, next){
 *     tags:
 *       - Travels
 *     description: Creates a new travel
-*     produces:
-*       - application/json
-*     parameters:
-*       - name: description
-*         description: travel description
-*         in: body
-*         required: true
-*       - name: date
-*         description: travel date
-*         in: body
-*         required: true
-*       - name: city
-*         description: travel city destination
-*         in: body
-*         required: true
-*       - name: country
-*         description: travel country destination
-*         in: body
-*         required: true
-*       - name: gps
-*         description: travel coordinates
-*         in: body
-*         required: false
-*         schema:
-*           $ref: '#/definitions/GPS'
-*     deprecated: true
 *     responses:
 *       201:
 *         description: Successfully created
@@ -209,6 +181,7 @@ router.post('v1/users/login', function(req, res, next){
 *         description: bad requeste / missing parameters
 *       500:
 *         description: failed to add travel
+*     deprecated: true
 */
 router.post('/v1/travels/', function(req, res, next){
 
@@ -380,30 +353,13 @@ router.get('/v1/travels/:id', function(req, res, next){
 *     description: updates a travel
 *     produces:
 *       - application/json
-*     parameters:
-*       - name: id
-*         description: travels id
-*         in: path
-*         required: true
-*       - name: description
-*         description: travel description
-*         in: body
-*         required: false
-*       - name: local
-*         description: travel coordinates
-*         in: body
-*         required: false
-*         schema:
-*           $ref: '#/definitions/Local'
 *     responses:
-*       200:
-*         description: Successfully updated
-*       204:
-*         description: travel not found
+*       201:
+*         description: Successfully created
 *       400:
-*         description: bad request / missing parameters
+*         description: bad requeste / missing parameters
 *       500:
-*         description: failed to update travel
+*         description: failed to add travel
 *     deprecated: true
 */
 router.put('/v1/travels/:id', function(req, res, next){
@@ -458,6 +414,7 @@ router.put('/v1/travels/:id', function(req, res, next){
 *         description: travels id
 *         in: path
 *         required: true
+*         type: string
 *       - name: travel
 *         description: travel coordinates
 *         in: body
@@ -520,6 +477,7 @@ router.put('/v2/travels/:id', function(req, res, next){
 *         description: travels id
 *         in: path
 *         required: true
+*         type: string
 *     responses:
 *       200:
 *         description: Successfully deleted
@@ -613,32 +571,13 @@ router.get('/v1/travels/:id/experiences/', function(req, res, next){
 *       - application/json
 *     produces:
 *       - application/json
-*     parameters:
-*       - name: id
-*         description: travel id to add experience
-*         in: path
-*         required: true
-*       - name: narrative
-*         description: experience description
-*         in: body
-*         required: true
-*       - name: date
-*         description: experience date
-*         in: body
-*         required: true
-*       - name: gps
-*         description: experience coordinates
-*         in: body
-*         required: false
-*         schema:
-*           $ref: '#/definitions/GPS'
 *     responses:
 *       201:
 *         description: Successfully created
 *       400:
 *         description: bad requeste / missing parameters
 *       500:
-*         description: failed to create experience
+*         description: failed to add travel
 *     deprecated: true
 */
 router.post('/v1/travels/:id/experiences/', function(req, res, next){
@@ -701,6 +640,7 @@ router.post('/v1/travels/:id/experiences/', function(req, res, next){
 *         description: travel id to add experience
 *         in: path
 *         required: true
+*         type: string
 *       - name: body
 *         description: experience object
 *         in: body
@@ -814,36 +754,13 @@ router.get('/v1/travels/:id/experiences/:eid', function(req, res, next){
 *     description: updates a experience
 *     produces:
 *       - application/json
-*     parameters:
-*       - name: id
-*         description: travel id to add experience
-*         in: path
-*         required: true
-*       - name: eid
-*         description: experience id to update
-*         in: path
-*         required: true
-*       - name: narrative
-*         description: experience description
-*         in: body
-*         required: true
-*       - name: date
-*         description: experience date
-*         in: body
-*         required: true
-*       - name: gps
-*         description: experience coordinates
-*         in: body
-*         required: false
-*         schema:
-*           $ref: '#/definitions/GPS'
 *     responses:
 *       201:
 *         description: Successfully created
 *       400:
 *         description: bad requeste / missing parameters
 *       500:
-*         description: failed to create experience
+*         description: failed to add travel
 *     deprecated: true
 */
 router.put('/v1/travels/:id/experiences/:eid', function(req, res, next){
@@ -902,10 +819,12 @@ router.put('/v1/travels/:id/experiences/:eid', function(req, res, next){
 *         description: travel id to add experience
 *         in: path
 *         required: true
+*         type: string
 *       - name: eid
 *         description: experience id to update
 *         in: path
 *         required: true
+*         type: string
 *       - name: body
 *         description: experience coordinates
 *         in: body
