@@ -15,7 +15,7 @@
     "express-partials": "^0.3.0",
     "express-session": "^1.15.3",
     "mongodb": "^2.2.27",
-    "mongoose": "^4.10.2",
+    "mongoose": "^4.10.4",
     "monk": "^4.0.0",
     "morgan": "~1.8.1",
     "object-length": "^0.2.0",

@@ -7,30 +7,8 @@ var experienceSchema = new mongoose.Schema({
   details: { type: Array, default: []},
   deleted: Boolean,
   classifications: {type: Array, default:[]}
-});
+}, { _id: true } );
 
+
+module.exports = experienceSchema;
 mongoose.model('Experience', experienceSchema);
-
-// viagem
-//   -Local
-//     -Pais
-//     -Cidade
-//     -GPS
-//   -Descrição
-//   -Data
-//   -Utilizador
-//   -Experiencias
-//     -Data
-//     -Designação;
-//     -Narrativa?
-//     -GPS?
-//     -Caracteristicas
-//       -texto?
-//       -fotos?
-//       -videos?
-//       -audio?
-//       -metereologia?
-//     -classificações #like
-//       -description
-//       -user
-//       -value

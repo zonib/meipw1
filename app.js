@@ -9,14 +9,14 @@ var session = require("express-session");
 var swaggerJSDoc = require('swagger-jsdoc');
 
 var db = require('./model/db'),
-  travel = require('./model/travels'),
-  user = require('./model/user')
-  experience = require('./model/experiences');
+experience = require('./model/experiences'),
+travel = require('./model/travels'),
+user = require('./model/user');
 
 var index = require('./routes/index'),
-  users = require('./routes/users'),
-  travel = require('./routes/travel'),
-  api = require('./routes/api');
+users = require('./routes/users'),
+travel = require('./routes/travel'),
+api = require('./routes/api');
 
 var app = express();
 

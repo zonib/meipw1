@@ -4,9 +4,10 @@ cutter = require('utf8-binary-cutter'),
 len = require('object-length'),
 ObjectId = require('mongodb').ObjectID,
 mongoose = require('mongoose');
-Travel = mongoose.model('Travel');
 User = mongoose.model('User');
 Experience = mongoose.model('Experience');
+Travel = mongoose.model('Travel');
+
 // var Travels = require('../model/travel');
 // var ObjectID = require('mongodb').ObjectID;
 var router = express.Router();
@@ -711,15 +712,15 @@ router.post('/v2/travels/:id/experiences/', function(req, res, next){
     return;
   }
 
-  experience._id = mongoose.Types.ObjectId(),
+  experienceobj = new Experience(experience);
 
-  mongoose.model('Travel').findById(travelid, function (err, docs) {
+  Travel.findById(travelid, function (err, docs) {
     if(!docs){
       res.status(204).send({});
       return;
     }
 
-    docs.experiences.push(experience);
+    docs.experiences.push(experienceobj);
 
     docs.save(function (err) {
       if (err) res.status(500).send(JSON.stringify(err));
@@ -911,9 +912,19 @@ router.put('/v2/travels/:id/experiences/:eid', function(req, res, next){
     return;
   }
 
-  experience._id = mongoose.Types.ObjectId(experienceid);
+  // experience._id = mongoose.Types.ObjectId(experienceid);
 
-return;
+  Travel.findById(travelid, function(err, obj){
+    if(err){
+        res.status(204).send(err);
+        return;
+      }
+      
+    res.send(obj.experiences.id(experienceid));
+    return;
+  });
+
+
   // Travel.findOnde({ _id: travelid, "experiences._id": mongoose.Types.ObjectId(experienceid) } , function (err, obj) {
   //   if(!obj){
   //     res.status(204).send();
