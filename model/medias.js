@@ -12,7 +12,7 @@ mediaSchema.methods.delete = function(callback){
 }
 
 module.exports = mediaSchema;
-mongoose.model('Medias', detailsSchema);
+mongoose.model('Medias', mediaSchema);
 
 // viagem
 //   -Local

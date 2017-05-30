@@ -149,7 +149,35 @@ router.post('/v1/users/', function(req, res, next){
   });
 });
 
-router.post('v1/users/login', function(req, res, next){
+
+//login
+/**
+* @swagger
+* /api/v1/users/login:
+*   post:
+*     tags:
+*       - Users
+*     description: Login
+*     consumes:
+*       - application/x-www-form-urlencoded
+*     produces:
+*       - application/json
+*     parameters:
+*       - name: email
+*         description: user email
+*         in: formData
+*         required: true
+*       - name: pwd
+*         description: user password
+*         in: formData
+*         required: true
+*     responses:
+*       200:
+*         description: Successfully login
+*       401:
+*         description: failed login
+*/
+router.post('/v1/users/login', function(req, res, next){
   var email = req.body.email;
   var pwd = req.body.pwd;
 
@@ -160,7 +188,7 @@ router.post('v1/users/login', function(req, res, next){
     }
 
     var token = 1;
-    res.status(200).send(token);
+    res.status(200).send({});
     return;
   });
 
