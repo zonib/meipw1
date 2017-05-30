@@ -297,7 +297,7 @@ router.post('/v2/travels/', function(req, res, next){
 */
 router.get('/v1/travels', function(req, res, next){
 
-  mongoose.model('Travel').find({deleted: {$ne: true}}, function (err, docs) {
+  mongoose.model('Travel').find({deleted: {$ne: true}},{ "experiences": 0}, function (err, docs) {
     if(!docs){
       res.status(204).send();
       return;
