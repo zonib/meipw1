@@ -458,27 +458,29 @@ router.put('/v1/travels/:id', function(req, res, next){
 */
 router.put('/v2/travels/:id', function(req, res, next){
   var id = req.params.id;
-  var data = req.body.travel;
+  var travel = req.body;
 
   if(cutter.getBinarySize(id) != 24){
     res.status(400).send();
     return;
   }
 
-  if(data.length == 0){
+  if(len(travel) == 0){
     res.status(400).send();
     return;
   }
 
-  mongoose.model('Travel').findById(id , function (err, obj) {
+  Travel.findById(id , function (err, obj) {
     if(!obj){
       res.status(404).send();
       return;
     }
 
-    obj.update(data, function (err, blobID) {
-      if(err) res.status(500).send();
-      else res.status(200).send();
+    // res.status(204).send();
+    // return;
+    obj.update(travel, function (err, blobID) {
+      if(err) res.status(500).send({});
+      else res.status(200).send({});
 
       return;
     });
@@ -905,26 +907,43 @@ router.put('/v2/travels/:id/experiences/:eid', function(req, res, next){
   }
 
   if(len(experience) == 0){
-    res.status(400).send(1);
+    res.status(400).send();
     return;
   }
 
   experience._id = mongoose.Types.ObjectId(experienceid);
 
-  Travel.findOneAndUpdate({ _id: travelid, "experiences._id": mongoose.Types.ObjectId(experienceid) }, {
-    "$set": {
-      "experiences.$": experience
-    }
-  },
-  function (err, docs) {
-    if(err){
-      res.status(204).send({});
-      return;
-    }
+return;
+  // Travel.findOnde({ _id: travelid, "experiences._id": mongoose.Types.ObjectId(experienceid) } , function (err, obj) {
+  //   if(!obj){
+  //     res.status(204).send();
+  //     return;
+  //   }
+  //
+  //   // res.status(204).send();
+  //   // return;
+  //   obj.update(travel, function (err, blobID) {
+  //     if(err) res.status(500).send({});
+  //     else res.status(200).send({});
+  //
+  //     return;
+  //   });
+  // });
 
-    res.status(200).send({});
-    return;
-  });
+  // Travel.findOneAndUpdate({ _id: travelid, "experiences._id": mongoose.Types.ObjectId(experienceid) }, {
+  //   "$set": {
+  //     "experiences.$": experience
+  //   }
+  // },
+  // function (err, docs) {
+  //   if(err){
+  //     res.status(204).send({});
+  //     return;
+  //   }
+  //
+  //   res.status(200).send({});
+  //   return;
+  // });
 });
 
 //delete experience
