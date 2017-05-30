@@ -9,6 +9,7 @@ var session = require("express-session");
 var swaggerJSDoc = require('swagger-jsdoc');
 
 var db = require('./model/db'),
+detail = require('./model/details'),
 experience = require('./model/experiences'),
 travel = require('./model/travels'),
 user = require('./model/user');
@@ -29,8 +30,8 @@ var swaggerDefinition = {
     description: 'TP1 PW',
   },
   // host: 'zeus:3000',
-  // host: 'localhost:3000',
-  host: 'pwtraveldiary.herokuapp.com',
+  host: 'localhost:3000',
+  // host: 'pwtraveldiary.herokuapp.com',
   basePath: '/',
 };
 

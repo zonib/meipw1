@@ -1,0 +1,39 @@
+var mongoose = require('mongoose');
+
+var mediaSchema = new mongoose.Schema({
+  value: { data: Buffer, contentType: String },
+  date: { type: Date, default: Date.now },
+  deleted: Boolean,
+});
+
+mediaSchema.methods.delete = function(callback){
+  this.deleted = true;
+  callback();
+}
+
+module.exports = mediaSchema;
+mongoose.model('Medias', detailsSchema);
+
+// viagem
+//   -Local
+//     -Pais
+//     -Cidade
+//     -GPS
+//   -Descrição
+//   -Data
+//   -Utilizador
+//   -Experiencias
+//     -Data
+//     -Designação;
+//     -Narrativa?
+//     -GPS?
+//     -Caracteristicas
+//       -texto?
+//       -fotos?
+//       -videos?
+//       -audio?
+//       -metereologia?
+//     -classificações #like
+//       -description
+//       -user
+//       -value

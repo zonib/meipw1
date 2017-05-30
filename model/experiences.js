@@ -1,10 +1,11 @@
 var mongoose = require('mongoose');
+var mediaSchema = require('./medias');
 
 var experienceSchema = new mongoose.Schema({
   date: Date,
   narrative: String,
   gps: { lat: Number, lng: Number},
-  details: { type: Array, default: []},
+  details: [mediaSchema],
   deleted: Boolean,
   classifications: {type: Array, default:[]}
 }, { _id: true } );

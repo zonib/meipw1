@@ -20,12 +20,4 @@ travelSchema.methods.delete = function(callback){
   callback();
 }
 
-travelSchema.methods.getExperiences = function(callback){
-  // this.experiences.find({"experiences.deleted": { $ne: true}}, function(err, obj){
-  //     callback(err, obj);
-  // });
-}
-
-
-
 mongoose.model('Travel', travelSchema);
