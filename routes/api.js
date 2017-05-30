@@ -14,7 +14,7 @@ var router = express.Router();
 
 /**
 * @swagger
-* definition:
+* properties:
 *       User:
 *         type: object
 *         properties:
@@ -39,7 +39,7 @@ var router = express.Router();
 
 /**
 * @swagger
-* definition:
+* properties:
 *       Error:
 *         type: object
 *         properties:
@@ -49,7 +49,7 @@ var router = express.Router();
 
 /**
 * @swagger
-* definition:
+* properties:
 *       GPS:
 *         type: object
 *         properties:
@@ -61,7 +61,7 @@ var router = express.Router();
 
 /**
 * @swagger
-* definition:
+* properties:
 *   Local:
 *     type: object
 *     properties:
@@ -75,7 +75,7 @@ var router = express.Router();
 
 /**
 * @swagger
-* definition:
+* properties:
 *   Experience:
 *     type: object
 *     properties:
@@ -90,7 +90,7 @@ var router = express.Router();
 
 /**
 * @swagger
-* definition:
+* properties:
 *   Travel:
 *     type: object
 *     properties:
