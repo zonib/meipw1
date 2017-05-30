@@ -151,6 +151,23 @@ router.post('/v1/users/', function(req, res, next){
   });
 });
 
+router.post('v1/users/login', function(req, res, next){
+  var email = req.body.email;
+  var pwd = req.body.pwd;
+
+  User.findOne({ email: email, pwd: pwd }, function(err, obj) {
+    if(!obj){
+      res.status(401).send({});
+      return;
+    }
+
+    var token = 1;
+    res.status(200).send(token);
+    return;
+  });
+
+});
+
 //add new travel to database
 /**
 * @swagger
