@@ -29,8 +29,8 @@ var swaggerDefinition = {
     version: '1.0.0',
     description: 'TP1 PW',
   },
-  // host: 'zeus:3000',
-  host: 'localhost:3000',
+  host: 'zeus:3000',
+  // host: 'localhost:3000',
   // host: 'pwtraveldiary.herokuapp.com',
   basePath: '/',
 };
