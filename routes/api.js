@@ -5,10 +5,61 @@ len = require('object-length'),
 ObjectId = require('mongodb').ObjectID,
 mongoose = require('mongoose');
 User = mongoose.model('User');
+Media = mongoose.model('Media');
 Experience = mongoose.model('Experience');
 Travel = mongoose.model('Travel');
 
 var router = express.Router();
+
+/*MODELS SWAGGER*/
+
+/**
+* @swagger
+* definition:
+*       Error:
+*         type: object
+*         properties:
+*           code:
+*             type: string
+*/
+
+/**
+* @swagger
+* definition:
+*       GPS:
+*         type: object
+*         properties:
+*           lat:
+*             type: number
+*           lng:
+*             type: number
+*/
+
+/**
+* @swagger
+* definition:
+*       Rate:
+*         type: object
+*         properties:
+*           description:
+*             type: string
+*           value:
+*             type: number
+*/
+
+/**
+* @swagger
+* definition:
+*   Local:
+*     type: object
+*     properties:
+*       city:
+*         type: string
+*       country:
+*         type: string
+*       gps:
+*         $ref: '#/definitions/GPS'
+*/
 
 /**
 * @swagger
@@ -38,37 +89,14 @@ var router = express.Router();
 /**
 * @swagger
 * definition:
-*       Error:
+*       Media:
 *         type: object
 *         properties:
-*           code:
+*           value:
 *             type: string
-*/
-
-/**
-* @swagger
-* definition:
-*       GPS:
-*         type: object
-*         properties:
-*           lat:
-*             type: number
-*           lng:
-*             type: number
-*/
-
-/**
-* @swagger
-* definition:
-*   Local:
-*     type: object
-*     properties:
-*       city:
-*         type: string
-*       country:
-*         type: string
-*       gps:
-*         $ref: '#/definitions/GPS'
+*           date:
+*             type: string
+*             format: date-time
 */
 
 /**
@@ -103,7 +131,9 @@ var router = express.Router();
 *         $ref: '#/definitions/Local'
 */
 
+/*END MODELS SWAGGER*/
 
+/*USERS*/
 //registuser
 /**
 * @swagger
@@ -149,7 +179,6 @@ router.post('/v1/users/', function(req, res, next){
   });
 });
 
-
 //login
 /**
 * @swagger
@@ -193,7 +222,9 @@ router.post('/v1/users/login', function(req, res, next){
   });
 
 });
+/*END USERS*/
 
+/*TRAVELS*/
 //add new travel to database
 /**
 * @swagger
@@ -235,7 +266,7 @@ router.post('/v1/travels/', function(req, res, next){
   if(country) data.local.country = country;
   if(city) data.local.city = city;
 
-  mongoose.model('Travel').create(data, function(err, obj) {
+  Travel.create(data, function(err, obj) {
     if(err){
       res.status('500').send();
     }
@@ -282,7 +313,7 @@ router.post('/v2/travels/', function(req, res, next){
     return;
   }
 
-  mongoose.model('Travel').create(travel, function(err, obj) {
+  Travel.create(travel, function(err, obj) {
     if(err){
       res.status('500').send(JSON.stringify(err));
     }
@@ -360,7 +391,7 @@ router.get('/v1/travels/:id', function(req, res, next){
     return;
   }
 
-  mongoose.model('Travel').findOne({_id:id,  "deleted": { $ne: true }}, function (err, docs) {
+  Travel.findOne({_id:id,  "deleted": { $ne: true }}, function (err, docs) {
     if(!docs){
       res.status(204).send();
       return;
@@ -412,7 +443,7 @@ router.put('/v1/travels/:id', function(req, res, next){
     return;
   }
 
-  mongoose.model('Travel').findById(id , function (err, obj) {
+  Travel.findById(id , function (err, obj) {
     if(!obj){
       res.status(404).send();
       return;
@@ -524,7 +555,7 @@ router.delete('/v1/travels/:id', function(req, res, next) {
     return;
   }
 
-  mongoose.model('Travel').findById(id , function (err, obj) {
+  Travel.findById(id , function (err, obj) {
     if(!obj){
       res.status(204).send();
       return;
@@ -535,7 +566,10 @@ router.delete('/v1/travels/:id', function(req, res, next) {
     });
   });
 });
+/*END TRAVELS*/
 
+
+/*EXPERIENCES*/
 //get travel experiences
 /**
 * @swagger
@@ -634,7 +668,7 @@ router.post('/v1/travels/:id/experiences/', function(req, res, next){
   if(narrative) data.narrative = narrative;
   if(gps) data.gps = gps;
 
-  mongoose.model('Travel').findById(travelid, function (err, docs) {
+  Travel.findById(travelid, function (err, docs) {
     if(!docs){
       res.status(204).send();
       return;
@@ -976,5 +1010,85 @@ router.delete('/v1/travels/:id/experiences/:eid', function(req, res, next){
   //   return;
   // });
 });
+
+//Rate a experience
+/**
+* @swagger
+* /api/v1/travels/{id}/experiences/{eid}/rate:
+*   put:
+*     tags:
+*       - Experiences
+*     description: rate a experience
+*     produces:
+*       - application/json
+*     parameters:
+*       - name: id
+*         description: travel id to add experience
+*         in: path
+*         required: true
+*         type: string
+*       - name: eid
+*         description: experience id to update
+*         in: path
+*         required: true
+*         type: string
+*       - name: body
+*         description: rate
+*         in: body
+*         required: true
+*         schema:
+*           $ref: '#/definitions/Rate'
+*     responses:
+*       200:
+*         description: Successfully reated
+*       400:
+*         description: bad request / missing parameters
+*       500:
+*         description: failed to rate experience
+*/
+router.put('/v1/travels/:id/experiences/:eid/rate', function(req, res, next){
+  var travelid = req.params.id;
+  var experienceid = req.params.eid;
+  var rate = req.body;
+
+  if(cutter.getBinarySize(travelid) != 24 || cutter.getBinarySize(experienceid) != 24){
+    res.status(400).send(2);
+    return;
+  }
+
+  if(len(rate) == 0){
+    res.status(400).send();
+    return;
+  }
+
+  Travel.findById(travelid, function(err, obj){
+    if(err){
+      res.status(204).send(err);
+      return;
+    }
+
+    exp = obj.experiences.id(experienceid);
+    if(!exp || exp.deleted == true){
+      res.status(204).send({});
+      return;
+    }
+
+    exp.classifications.push(rate);
+
+    exp.save(function (err) {
+      if (err) res.status(500).send(JSON.stringify(err));
+      res.status(201).send({});
+      return;
+    });
+  });
+});
+/*END EXPERIENCES*/
+
+
+/*MEDIAS*/
+router.get('v1/travels/:id/experiences/:ide/medias/', function(req, res, next){
+
+});
+/*END MEDIAS*/
 
 module.exports = router;

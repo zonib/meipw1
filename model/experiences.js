@@ -5,7 +5,7 @@ var experienceSchema = new mongoose.Schema({
   date: Date,
   narrative: String,
   gps: { lat: Number, lng: Number},
-  details: [mediaSchema],
+  medias: [mediaSchema],
   deleted: Boolean,
   classifications: {type: Array, default:[]}
 }, { _id: true } );
