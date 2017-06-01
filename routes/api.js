@@ -1255,7 +1255,7 @@ router.get('v1/travels/:id/experiences/:ide/medias/', function(req, res, next){
 router.post('/v1/travels/:id/experiences/:ide/medias/', function(req, res, next){
 
   var travelid = req.params.id;
-  var experienceid = req.params.eid;
+  var experienceid = req.params.ide;
   var media = req.body;
 
   if(cutter.getBinarySize(experienceid) != 24 || cutter.getBinarySize(travelid) != 24){
@@ -1332,7 +1332,7 @@ router.post('/v1/travels/:id/experiences/:ide/medias/', function(req, res, next)
 router.put('/v1/travels/:id/experiences/:ide/medias/:idm', function(req, res, next){
 
   var travelid = req.params.id;
-  var experienceid = req.params.eid;
+  var experienceid = req.params.ide;
   var mediaid = req.params.idm;
   var media = req.body;
 
@@ -1410,7 +1410,7 @@ router.put('/v1/travels/:id/experiences/:ide/medias/:idm', function(req, res, ne
 router.delete('/v1/travels/:id/experiences/:ide/medias/:idm', function(req, res, next){
 
   var travelid = req.params.id;
-  var experienceid = req.params.eid;
+  var experienceid = req.params.ide;
   var mediaid = req.params.idm;
 
   if(cutter.getBinarySize(experienceid) != 24 || cutter.getBinarySize(travelid) != 24 || cutter.getBinarySize(mediaid) != 24){
