@@ -210,10 +210,12 @@ router.post('/v1/users/', function(req, res, next){
 *         description: user email
 *         in: formData
 *         required: true
+*         type: string
 *       - name: pwd
 *         description: user password
 *         in: formData
 *         required: true
+*         type: string
 *     responses:
 *       200:
 *         description: Successfully login
