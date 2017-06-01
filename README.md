@@ -14,7 +14,7 @@ viagem
     -Designação;
     -Narrativa?
     -GPS?
-    -Caracteristicas
+    -Medias #array de fotos, texto, video, etc... tudo junto
       -texto?
       -fotos?
       -videos?
