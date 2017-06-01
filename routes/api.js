@@ -16,6 +16,16 @@ var router = express.Router();
 /**
 * @swagger
 * definition:
+*       Rating:
+*         type: object
+*         properties:
+*           value:
+*             type: number
+*/
+
+/**
+* @swagger
+* definition:
 *       Error:
 *         type: object
 *         properties:
@@ -566,10 +576,59 @@ router.delete('/v1/travels/:id', function(req, res, next) {
     });
   });
 });
+
+//get travel rates MISSING
+/**
+* @swagger
+* /api/v1/travels/{id}/rates:
+*   get:
+*     tags:
+*       - Travels
+*     description: Returns a  travel rating
+*     produces:
+*       - application/json
+*     parameters:
+*       - name: id
+*         description: Travels id
+*         in: path
+*         required: true
+*         type: string
+*     responses:
+*       200:
+*         description: A single travel
+*         schema:
+*           $ref: '#/definitions/Rating'
+*       204:
+*         description: travel not found
+*       400:
+*         description: bad requeste / invalid id
+*/
+router.get('/v1/travels/:id/rates', function(req, res, next){
+  var id = req.params.id;
+
+  if(cutter.getBinarySize(id) != 24){
+    res.status(400).send();
+    return;
+  }
+
+  Travel.findOne({_id:id,  "deleted": { $ne: true }}, function (err, docs) {
+    if(!docs){
+      res.status(204).send();
+      return;
+    }
+
+    var rating = 0;
+    for(var i = 0, s = docs.experiences.length; i < s; i++) if(!docs.experiences[i].deleted) for(var k = 0, ss = docs.experiences[i].classifications.length; k < ss; k++) if(!docs.experiences[i].classifications[k].deleted) rating += eval(docs.experiences[i].classifications[k].value);
+
+    res.status(200).send("{ value: " + rating + " }");
+    return;
+  });
+});
 /*END TRAVELS*/
 
 
 /*EXPERIENCES*/
+
 //get travel experiences
 /**
 * @swagger
@@ -1075,7 +1134,7 @@ router.put('/v1/travels/:id/experiences/:eid/rate', function(req, res, next){
 
     exp.classifications.push(rate);
 
-    exp.save(function (err) {
+    obj.save(function (err) {
       if (err) res.status(500).send(JSON.stringify(err));
       res.status(201).send({});
       return;
@@ -1086,8 +1145,302 @@ router.put('/v1/travels/:id/experiences/:eid/rate', function(req, res, next){
 
 
 /*MEDIAS*/
-router.get('v1/travels/:id/experiences/:ide/medias/', function(req, res, next){
 
+//get experience media
+/**
+* @swagger
+* /api/v1/travels/{id}/experiences/{ide}/medias:
+*   get:
+*     tags:
+*       - Medias
+*     description: Returns all  experiences medias
+*     parameters:
+*       - name: id
+*         description: Travels id
+*         in: path
+*         required: true
+*         type: string
+*       - name: ide
+*         description: experience id
+*         in: path
+*         required: true
+*         type: string
+*     produces:
+*       - application/json
+*     responses:
+*       200:
+*         description: An array of travel experiences
+*         schema:
+*           type: array
+*           items:
+*             $ref: '#/definitions/Media'
+*       204:
+*         description: no content / No experiences
+*       400:
+*         description: bad request / missing parameters
+*/
+router.get('v1/travels/:id/experiences/:ide/medias/', function(req, res, next){
+  var travelid = req.params.id;
+  var experienceid = req.params.eid;
+
+  if(cutter.getBinarySize(experienceid) != 24 || cutter.getBinarySize(travelid) != 24){
+    res.status(400).send();
+    return;
+  }
+
+  Travel.findById(travelid, function(err, obj){
+    if(err){
+      res.status(204).send(err);
+      return;
+    }
+
+    exp = obj.experiences.id(experienceid);
+    if(!exp || exp.deleted == true){
+      res.status(204).send({});
+      return;
+    }
+
+    var outdata = [];
+    for(var i = 0, s = exp.medias.length; i < s; i++){
+      if(exp.medias[i].deleted != true) outdata.push(exp.medias[i]);
+    }
+
+    res.status(200).send(outdata);
+  });
+});
+
+//add media to experience
+/**
+* @swagger
+* /api/v2/travels/{id}/experiences/{ied}/medias:
+*   post:
+*     tags:
+*       - Medias
+*     description: Creates a new media on experience
+*     consumes:
+*       - application/json
+*     produces:
+*       - application/json
+*     parameters:
+*       - name: id
+*         description: Travels id
+*         in: path
+*         required: true
+*         type: string
+*       - name: ide
+*         description: experience id
+*         in: path
+*         required: true
+*         type: string
+*       - name: body
+*         description: media object
+*         in: body
+*         required: true
+*         schema:
+*           $ref: '#/definitions/Media'
+*     responses:
+*       201:
+*         description: Successfully created
+*       204:
+*         description: travel/ experience don't exists
+*       400:
+*         description: bad requeste / missing parameters
+*       500:
+*         description: failed to add media
+*/
+router.post('/v1/travels/:id/experiences/:ide/medias/', function(req, res, next){
+
+  var travelid = req.params.id;
+  var experienceid = req.params.eid;
+  var media = req.body;
+
+  if(cutter.getBinarySize(experienceid) != 24 || cutter.getBinarySize(travelid) != 24){
+    res.status(400).send();
+    return;
+  }
+
+  Travel.findById(travelid, function(err, obj){
+    if(err){
+      res.status(204).send(err);
+      return;
+    }
+
+    exp = obj.experiences.id(experienceid);
+    if(!exp || exp.deleted == true){
+      res.status(204).send({});
+      return;
+    }
+
+    mediaobj = new Experience(media);
+
+    exp.medias.push(mediaobj);
+
+    obj.save(function (err) {
+      if (err) res.status(500).send(JSON.stringify(err));
+      res.status(201).send({});
+      return;
+    });
+  });
+});
+
+//update media
+/**
+* @swagger
+* /api/v2/travels/{id}/experiences/{eid}/medias/{idm}:
+*   put:
+*     tags:
+*       - Medias
+*     description: updates a media
+*     produces:
+*       - application/json
+*     parameters:
+*       - name: id
+*         description: Travels id
+*         in: path
+*         required: true
+*         type: string
+*       - name: ide
+*         description: experience id
+*         in: path
+*         required: true
+*         type: string
+*       - name: idm
+*         description: media id
+*         in: path
+*         required: true
+*         type: string
+*       - name: body
+*         description: media object
+*         in: body
+*         required: true
+*         schema:
+*           $ref: '#/definitions/Media'
+*     responses:
+*       200:
+*         description: Successfully updated
+*       204:
+*         description: travel/ experience / media don't exists
+*       400:
+*         description: bad requeste / missing parameters
+*       500:
+*         description: failed to create experience
+*/
+router.put('/v1/travels/:id/experiences/:ide/medias/:idm', function(req, res, next){
+
+  var travelid = req.params.id;
+  var experienceid = req.params.eid;
+  var mediaid = req.params.idm;
+  var media = req.body;
+
+  if(cutter.getBinarySize(experienceid) != 24 || cutter.getBinarySize(travelid) != 24 || cutter.getBinarySize(mediaid) != 24){
+    res.status(400).send();
+    return;
+  }
+
+  Travel.findById(travelid, function(err, obj){
+    if(err){
+      res.status(204).send(err);
+      return;
+    }
+
+    exp = obj.experiences.id(experienceid);
+    if(!exp || exp.deleted == true){
+      res.status(204).send({});
+      return;
+    }
+
+    med = exp.medias.id(mediaid);
+
+    if(!med || med.deleted == true){
+      res.status(204).send({});
+      return;
+    }
+
+    med.value = media.value;
+    med.date = media.date;
+
+    obj.save(function (err) {
+      if (err) res.status(500).send(JSON.stringify(err));
+      res.status(201).send({});
+      return;
+    });
+  });
+});
+
+//delete media
+/**
+* @swagger
+* /api/v1/travels/{id}/experiences/{eid}/medias/{idm}:
+*   delete:
+*     tags:
+*       - Medias
+*     description: delete a media
+*     produces:
+*       - application/json
+*     parameters:
+*       - name: id
+*         description: Travels id
+*         in: path
+*         required: true
+*         type: string
+*       - name: ide
+*         description: experience id
+*         in: path
+*         required: true
+*         type: string
+*       - name: idm
+*         description: media id
+*         in: path
+*         required: true
+*         type: string
+*     responses:
+*       200:
+*         description: Successfully deleted
+*       204:
+*         description: travel/experience/media not found
+*       400:
+*         description: bad request / missing parameters
+*       500:
+*         description: failed to delete media
+*/
+router.delete('/v1/travels/:id/experiences/:ide/medias/:idm', function(req, res, next){
+
+  var travelid = req.params.id;
+  var experienceid = req.params.eid;
+  var mediaid = req.params.idm;
+
+  if(cutter.getBinarySize(experienceid) != 24 || cutter.getBinarySize(travelid) != 24 || cutter.getBinarySize(mediaid) != 24){
+    res.status(400).send();
+    return;
+  }
+
+  Travel.findById(travelid, function(err, obj){
+    if(err){
+      res.status(204).send(err);
+      return;
+    }
+
+    exp = obj.experiences.id(experienceid);
+    if(!exp || exp.deleted == true){
+      res.status(204).send({});
+      return;
+    }
+
+    med = exp.medias.id(mediaid);
+
+    if(!med || med.deleted == true){
+      res.status(204).send({});
+      return;
+    }
+
+    med.delete(function(){
+      obj.save(function (err) {
+        if (err) res.status(500).send(JSON.stringify(err));
+        res.status(201).send({});
+        return;
+      });
+    });
+  });
 });
 /*END MEDIAS*/
 
