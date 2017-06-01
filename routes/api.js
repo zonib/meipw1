@@ -1216,7 +1216,7 @@ router.get('v1/travels/:id/experiences/:ide/medias/', function(req, res, next){
 //add media to experience
 /**
 * @swagger
-* /api/v2/travels/{id}/experiences/{ied}/medias:
+* /api/v2/travels/{id}/experiences/{ide}/medias:
 *   post:
 *     tags:
 *       - Medias
@@ -1290,7 +1290,7 @@ router.post('/v1/travels/:id/experiences/:ide/medias/', function(req, res, next)
 //update media
 /**
 * @swagger
-* /api/v2/travels/{id}/experiences/{eid}/medias/{idm}:
+* /api/v2/travels/{id}/experiences/{ide}/medias/{idm}:
 *   put:
 *     tags:
 *       - Medias
@@ -1374,7 +1374,7 @@ router.put('/v1/travels/:id/experiences/:ide/medias/:idm', function(req, res, ne
 //delete media
 /**
 * @swagger
-* /api/v1/travels/{id}/experiences/{eid}/medias/{idm}:
+* /api/v1/travels/{id}/experiences/{ide}/medias/{idm}:
 *   delete:
 *     tags:
 *       - Medias
