@@ -105,7 +105,8 @@ var router = express.Router();
 *           value:
 *             type: string
 *           type:
-*             type: enum
+*             type: string
+*             enum: [ photo, video, audio, text]
 *           date:
 *             type: string
 *             format: date-time
