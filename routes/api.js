@@ -104,6 +104,8 @@ var router = express.Router();
 *         properties:
 *           value:
 *             type: string
+*           type:
+*             type: enum
 *           date:
 *             type: string
 *             format: date-time
