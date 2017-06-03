@@ -388,6 +388,12 @@ router.get('/v1/travels', function(req, res, next){
 *     description: Returns all Travels
 *     produces:
 *       - application/json
+*     parameters:
+*       - name: id
+*         description: travels id
+*         in: path
+*         required: true
+*         type: string
 *     responses:
 *       200:
 *         description: first media
@@ -490,6 +496,12 @@ router.get('/v1/travels/:id', function(req, res, next){
 *     description: updates a travel
 *     produces:
 *       - application/json
+*     parameters:
+*       - name: id
+*         description: travels id
+*         in: path
+*         required: true
+*         type: string
 *     responses:
 *       201:
 *         description: Successfully created
