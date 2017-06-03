@@ -378,6 +378,69 @@ router.get('/v1/travels', function(req, res, next){
   });
 });
 
+//get all travels with firts moment img
+/**
+* @swagger
+* /api/v2/travels/{id}/firstmedia:
+*   get:
+*     tags:
+*       - Travels
+*     description: Returns all Travels
+*     produces:
+*       - application/json
+*     parameters:
+*       - name: id
+*         description: travels id
+*         in: path
+*         required: true
+*         type: string
+*     responses:
+*       200:
+*         description: first media
+*         schema:
+*           $ref: '#/definitions/Media'
+*       204:
+*         description: no content / No media
+*/
+router.get('/v2/travels/:id/firstmedia', function(req, res, next){
+
+  var id = req.params.id;
+
+  if(cutter.getBinarySize(id) != 24){
+    res.status(400).send();
+    return;
+  }
+
+  Travel.find({_id: travelid, deleted: {$ne: true}}, function (err, docs) {
+    if(!docs){
+      res.status(204).send();
+      return;
+    }
+
+    if(!docs.experiences){
+      res.status(204).send();
+      return;
+    }
+
+    var arrExp = docs.experiences;
+
+    for(var i = 0, s = arrExp.length; i < s; i++){
+      if(!arrExp[i] && arrExp[i].medias){
+        var arrMed = arrExp[i].medias;
+        for(var ii = 0, ss = arrMed.length; ii < ss; ii++){
+          if(!arrMed[ii].deleted && arrMed[ii].type == "photo"){
+            res.status(200).send(arrMed[ii]);
+            return;
+          }
+        }
+      }
+    }
+
+    res.status(204).send({});
+    return;
+  });
+});
+
 //get single travel
 /**
 * @swagger
@@ -433,6 +496,12 @@ router.get('/v1/travels/:id', function(req, res, next){
 *     description: updates a travel
 *     produces:
 *       - application/json
+*     parameters:
+*       - name: id
+*         description: travels id
+*         in: path
+*         required: true
+*         type: string
 *     responses:
 *       201:
 *         description: Successfully created
