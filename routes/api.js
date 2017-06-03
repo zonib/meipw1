@@ -105,9 +105,9 @@ var router = express.Router();
 *       Media:
 *         type: object
 *         properties:
-*           value:
+*           valueobj:
 *             type: string
-*           type:
+*           typeof:
 *             type: string
 *             enum: [ photo, video, audio, text]
 *           date:
@@ -381,7 +381,7 @@ router.get('/v1/travels', function(req, res, next){
 //get all travels with firts moment img
 /**
 * @swagger
-* /api/v2/travels/{id}/firstmedia:
+* /api/v1/travels/{id}/firstmedia:
 *   get:
 *     tags:
 *       - Travels
@@ -402,7 +402,7 @@ router.get('/v1/travels', function(req, res, next){
 *       204:
 *         description: no content / No media
 */
-router.get('/v2/travels/:id/firstmedia', function(req, res, next){
+router.get('/v1/travels/:id/firstmedia', function(req, res, next){
 
   var id = req.params.id;
 
@@ -411,33 +411,32 @@ router.get('/v2/travels/:id/firstmedia', function(req, res, next){
     return;
   }
 
-  Travel.find({_id: travelid, deleted: {$ne: true}}, function (err, docs) {
+  Travel.findOne({ _id: id, deleted: {$ne: true}}, function (err, docs) {
     if(!docs){
-      res.status(204).send();
+      res.status(204).send(docs);
       return;
     }
 
     if(!docs.experiences){
-      res.status(204).send();
+      res.status(204).send(docs);
       return;
     }
 
     var arrExp = docs.experiences;
+    var i = 0;
 
     for(var i = 0, s = arrExp.length; i < s; i++){
-      if(!arrExp[i] && arrExp[i].medias){
+      if(!arrExp[i].deleted && arrExp[i].medias.length > 0){
         var arrMed = arrExp[i].medias;
         for(var ii = 0, ss = arrMed.length; ii < ss; ii++){
-          if(!arrMed[ii].deleted && arrMed[ii].type == "photo"){
-            res.status(200).send(arrMed[ii]);
-            return;
+          if(!arrMed[ii].deleted && arrMed[ii].typeof == "photo"){
+            return res.status(200).send(arrMed[ii]);
           }
         }
       }
     }
 
-    res.status(204).send({});
-    return;
+    return res.status(204).send();
   });
 });
 
@@ -481,6 +480,7 @@ router.get('/v1/travels/:id', function(req, res, next){
       return;
     }
 
+    docs.experiences = undefined;
     res.send(docs);
     return;
   });
@@ -753,7 +753,11 @@ router.get('/v1/travels/:id/experiences/', function(req, res, next){
 
     var rExp = [];
 
-    for(var i = 0, s = docs.experiences.length; i < s; i++) if(!docs.experiences[i].deleted) rExp.push(docs.experiences[i]);
+    for(var i = 0, s = docs.experiences.length; i < s; i++) if(!docs.experiences[i].deleted) {
+      docs.experiences[i].medias = undefined;
+      docs.experiences[i].classifications = undefined;
+      rExp.push(docs.experiences[i]);
+    }
 
     res.send(rExp);
     return;
@@ -1351,13 +1355,13 @@ router.post('/v1/travels/:id/experiences/:ide/medias', function(req, res, next){
       return;
     }
 
-    mediaobj = new Experience(media);
+    mediaobj = new Media(media);
 
     exp.medias.push(mediaobj);
 
     obj.save(function (err) {
       if (err) res.status(500).send(JSON.stringify(err));
-      res.status(201).send({});
+      res.status(201).send();
       return;
     });
   });
@@ -1540,13 +1544,11 @@ router.delete('/v1/travels/:id/experiences/:ide/medias/:idm', function(req, res,
 *         in: path
 *         required: true
 *         type: string
-*         example: 592e0a7970379500115767e9
 *       - name: ide
 *         description: experience id
 *         in: path
 *         required: true
 *         type: string
-*         example: 59308a15e0ce72001154590b
 *       - in: formData
 *         name: media
 *         type: file
