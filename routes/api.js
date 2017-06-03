@@ -126,6 +126,9 @@ var router = express.Router();
 *         format: date-time
 *       narrative:
 *         type: string
+*       weather:
+*         type: string
+*         enum: [ 'Rain', 'Sunny']
 *       gps:
 *         $ref: '#/definitions/GPS'
 */
@@ -1496,29 +1499,15 @@ router.post('/v2/travels/:id/experiences/:ide/medias', function(req, res, next){
 
   if(cutter.getBinarySize(experienceid) != 24 || cutter.getBinarySize(travelid) != 24 || !req.files) res.status(400).send({})
 
-  res.send(JSON.stringify(req.files.media.path));
+  req.files.media.mv('uploads/' + req.files.media.name, function(err){
+    if(err) {
+      res.status(409).send({});
+      return;
+    }
 
-  // fs.readFile(req.files.img.path, function (err, data) {
-  //   var newPath = __dirname + "/uploads/uploadedFileName";
-  //   fs.writeFile(newPath, data, function (err) {
-  //     res.send({});
-  //   });
-  // });
-
-
-  // var form = new formidable.IncomingForm();
-
-  // form.parse(req, function (err, fields, files) {
-  //
-  //   var oldpath = files.filetoupload.path;
-  //   var newpath = 'uploads' + files.filetoupload.name;
-  //
-  //   fs.rename(oldpath, newpath, function (err) {
-  //     if (err) throw err;
-  //   });
-  //
-  //   res.status(200).send({});
-  // });
+    res.status(200).send({});
+    return
+  });
 });
 
 /*END MEDIAS*/
