@@ -7,6 +7,8 @@ var bodyParser = require('body-parser');
 var flash = require('connect-flash');
 var session = require("express-session");
 var swaggerJSDoc = require('swagger-jsdoc');
+var fileUpload = require('express-fileupload');
+
 
 var db = require('./model/db'),
 media = require('./model/medias'),
@@ -74,6 +76,8 @@ app.use(session({
   saveUninitialized: true
 }));
 
+
+app.use(fileUpload());
 app.use(flash());
 
 // Make our db accessible to our router

@@ -7,7 +7,9 @@ mongoose = require('mongoose');
 User = mongoose.model('User');
 Media = mongoose.model('Media');
 Experience = mongoose.model('Experience');
-Travel = mongoose.model('Travel');
+Travel = mongoose.model('Travel'),
+formidable = require('formidable'),
+fs = require('fs');
 
 var router = express.Router();
 
@@ -1185,9 +1187,9 @@ router.put('/v1/travels/:id/experiences/:eid/rate', function(req, res, next){
 *       400:
 *         description: bad request / missing parameters
 */
-router.get('v1/travels/:id/experiences/:ide/medias/', function(req, res, next){
+router.get('/v1/travels/:id/experiences/:ide/medias', function(req, res, next){
   var travelid = req.params.id;
-  var experienceid = req.params.eid;
+  var experienceid = req.params.ide;
 
   if(cutter.getBinarySize(experienceid) != 24 || cutter.getBinarySize(travelid) != 24){
     res.status(400).send();
@@ -1218,7 +1220,7 @@ router.get('v1/travels/:id/experiences/:ide/medias/', function(req, res, next){
 //add media to experience
 /**
 * @swagger
-* /api/v2/travels/{id}/experiences/{ide}/medias:
+* /api/v1/travels/{id}/experiences/{ide}/medias:
 *   post:
 *     tags:
 *       - Medias
@@ -1254,13 +1256,13 @@ router.get('v1/travels/:id/experiences/:ide/medias/', function(req, res, next){
 *       500:
 *         description: failed to add media
 */
-router.post('/v1/travels/:id/experiences/:ide/medias/', function(req, res, next){
+router.post('/v1/travels/:id/experiences/:ide/medias', function(req, res, next){
 
   var travelid = req.params.id;
   var experienceid = req.params.ide;
   var media = req.body;
 
-  if(cutter.getBinarySize(experienceid) != 24 || cutter.getBinarySize(travelid) != 24){
+  if(cutter.getBinarySize(experienceid) != 24 || cutter.getBinarySize(travelid) != 24 || len(media) == 0){
     res.status(400).send();
     return;
   }
@@ -1292,7 +1294,7 @@ router.post('/v1/travels/:id/experiences/:ide/medias/', function(req, res, next)
 //update media
 /**
 * @swagger
-* /api/v2/travels/{id}/experiences/{ide}/medias/{idm}:
+* /api/v1/travels/{id}/experiences/{ide}/medias/{idm}:
 *   put:
 *     tags:
 *       - Medias
@@ -1448,6 +1450,77 @@ router.delete('/v1/travels/:id/experiences/:ide/medias/:idm', function(req, res,
     });
   });
 });
+
+//add media to experience
+/**
+* @swagger
+* /api/v2/travels/{id}/experiences/{ide}/medias:
+*   post:
+*     tags:
+*       - Medias
+*     description: Creates a new media on experience
+*     summary: Uploads a file.
+*     consumes:
+*       - multipart/form-data
+*     parameters:
+*       - name: id
+*         description: Travels id
+*         in: path
+*         required: true
+*         type: string
+*         example: 592e0a7970379500115767e9
+*       - name: ide
+*         description: experience id
+*         in: path
+*         required: true
+*         type: string
+*         example: 59308a15e0ce72001154590b
+*       - in: formData
+*         name: media
+*         type: file
+*         description: The file to upload.
+*     responses:
+*       201:
+*         description: Successfully created
+*       204:
+*         description: travel/ experience don't exists
+*       400:
+*         description: bad requeste / missing parameters
+*       500:
+*         description: failed to add media
+*/
+router.post('/v2/travels/:id/experiences/:ide/medias', function(req, res, next){
+
+  var travelid = req.params.id;
+  var experienceid = req.params.ide;
+
+  if(cutter.getBinarySize(experienceid) != 24 || cutter.getBinarySize(travelid) != 24 || !req.files) res.status(400).send({})
+
+  res.send(JSON.stringify(req.files.media.path));
+
+  // fs.readFile(req.files.img.path, function (err, data) {
+  //   var newPath = __dirname + "/uploads/uploadedFileName";
+  //   fs.writeFile(newPath, data, function (err) {
+  //     res.send({});
+  //   });
+  // });
+
+
+  // var form = new formidable.IncomingForm();
+
+  // form.parse(req, function (err, fields, files) {
+  //
+  //   var oldpath = files.filetoupload.path;
+  //   var newpath = 'uploads' + files.filetoupload.name;
+  //
+  //   fs.rename(oldpath, newpath, function (err) {
+  //     if (err) throw err;
+  //   });
+  //
+  //   res.status(200).send({});
+  // });
+});
+
 /*END MEDIAS*/
 
 module.exports = router;
