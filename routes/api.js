@@ -53,9 +53,9 @@ var router = express.Router();
 *         properties:
 *           description:
 *             type: string
-*             enum: [1, 2, 3, 4, 5]
 *           value:
 *             type: number
+*             enum: [1, 2, 3, 4, 5]
 */
 
 /**
