@@ -407,18 +407,18 @@ router.get('/v1/travels/:id/firstmedia', function(req, res, next){
   var id = req.params.id;
 
   if(cutter.getBinarySize(id) != 24){
-    res.status(400).send();
+    res.status(400).send({});
     return;
   }
 
-  Travel.findOne({ _id: id, deleted: {$ne: true}}, function (err, docs) {
+  Travel.find({_id: travelid, deleted: {$ne: true}}, function (err, docs) {
     if(!docs){
-      res.status(204).send(docs);
+      res.status(204).send();
       return;
     }
 
     if(!docs.experiences){
-      res.status(204).send(docs);
+      res.status(204).send();
       return;
     }
 
@@ -436,7 +436,8 @@ router.get('/v1/travels/:id/firstmedia', function(req, res, next){
       }
     }
 
-    return res.status(204).send();
+    res.status(204).send({});
+    return;
   });
 });
 
@@ -1355,7 +1356,7 @@ router.post('/v1/travels/:id/experiences/:ide/medias', function(req, res, next){
       return;
     }
 
-    mediaobj = new Media(media);
+    mediaobj = new Experience(media);
 
     exp.medias.push(mediaobj);
 
