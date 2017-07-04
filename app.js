@@ -28,12 +28,12 @@ var app = express();
 var swaggerDefinition = {
   info: {
     title: 'travel diary API',
-    version: '1.0.0',
+    version: '1.2.0',
     description: 'TP1 PW',
   },
   // host: 'zeus:3000',
-  host: 'localhost:3000',
-  // host: 'pwtraveldiary.herokuapp.com',
+  // host: 'localhost:3000',
+  host: 'pwtraveldiary.herokuapp.com',
   basePath: '/',
 };
 
