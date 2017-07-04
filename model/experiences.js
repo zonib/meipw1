@@ -1,5 +1,5 @@
 var mongoose = require('mongoose');
-var mediaSchema = require('./medias');
+var mediaSchema = require('./media');
 
 var experienceSchema = new mongoose.Schema({
   date: Date,

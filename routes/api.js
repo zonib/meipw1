@@ -28,6 +28,16 @@ var router = express.Router();
 /**
 * @swagger
 * definition:
+*       Credits:
+*         type: object
+*         properties:
+*           value:
+*             type: number
+*/
+
+/**
+* @swagger
+* definition:
 *       Error:
 *         type: object
 *         properties:
@@ -57,7 +67,7 @@ var router = express.Router();
 *             type: string
 *           value:
 *             type: number
-*             enum: [1, 2, 3, 4, 5]
+*             enum: [1, 2, 3]
 */
 
 /**
@@ -97,6 +107,10 @@ var router = express.Router();
 *             type: string
 *           pwd:
 *             type: string
+*           badges:
+*             type: array
+*           credits:
+*             type: number
 */
 
 /**
@@ -146,6 +160,8 @@ var router = express.Router();
 *         type: string
 *       description:
 *         type: string
+*       shared:
+*         type: boolean
 *       local:
 *         $ref: '#/definitions/Local'
 */
@@ -238,11 +254,108 @@ router.post('/v1/users/login', function(req, res, next){
     }
 
     var token = 1;
-    res.status(200).send({});
+    res.status(200).send(obj);
     return;
   });
 
 });
+
+//getuser
+/**
+* @swagger
+* /api/v1/users/{id}/:
+*   get:
+*     tags:
+*       - Users
+*     description: get user
+*     produces:
+*       - application/json
+*     parameters:
+*       - name: id
+*         description: users id
+*         in: path
+*         required: true
+*         type: string
+*     responses:
+*       200:
+*         description: Successfully return
+*       400:
+*         description: bad requeste / missing parameters
+*       204:
+*         description: failed to get user
+*/
+router.get('/v1/users/:id', function(req, res, next){
+  var id = req.params.id;
+
+  if(len(id) == 0){
+    res.status('400').send(JSON.stringify({ error: { code: "0x0001"}}));
+    return;
+  }
+
+  User.findById(id, function(err, obj) {
+    if(err){
+      res.status('204').send(JSON.stringify(err));
+    }
+    else {
+      res.status('201').send(obj);
+    }
+    return;
+  });
+});
+
+//add/remove credits
+/**
+* @swagger
+* /api/v1/users/{id}/credits/:
+*   put:
+*     tags:
+*       - Users
+*     description: add / remove credits
+*     consumes:
+*       - application/json
+*     produces:
+*       - application/json
+*     parameters:
+*       - name: id
+*         description: users id
+*         in: path
+*         required: true
+*         type: string
+*       - name: body
+*         description: credits
+*         in: body
+*         required: true
+*         schema:
+*           $ref: '#/definitions/Credits'
+*     responses:
+*       200:
+*         description: Successfully added / removed
+*       204:
+*         description: user not found
+*/
+router.put('/v1/users/:id/credits/', function(req, res, next){
+  var id = req.params.id;
+  var creditstoadd = req.body.value;
+
+  User.findById(id, function(err, obj) {
+    if(!obj){
+      res.status(204).send();
+      return;
+    }
+
+    obj.credits += creditstoadd;
+    obj.save(function(err, obj){
+      if(!err){
+        res.status(200).send(obj);
+        return;
+      }
+
+      res.status(500).send();
+      return;
+    })
+  });
+});
+
 /*END USERS*/
 
 /*TRAVELS*/
@@ -705,6 +818,59 @@ router.get('/v1/travels/:id/rates', function(req, res, next){
     return;
   });
 });
+
+//share travel
+/**
+* @swagger
+* /api/v1/travels/{id}/share:
+*   put:
+*     tags:
+*       - Travels
+*     description: shares a travel
+*     produces:
+*       - application/json
+*     parameters:
+*       - name: id
+*         description: travels id
+*         in: path
+*         required: true
+*         type: string
+*     responses:
+*       200:
+*         description: Successfully updated
+*       204:
+*         description: travel not found
+*       400:
+*         description: bad request / missing parameters
+*       500:
+*         description: failed to update travel
+*/
+router.put('/v1/travels/:id/share', function(req, res, next){
+  var id = req.params.id;
+
+
+  if(cutter.getBinarySize(id) != 24){
+    res.status(400).send();
+    return;
+  }
+
+  Travel.findById(id , function (err, obj) {
+    if(!obj){
+      res.status(404).send();
+      return;
+    }
+
+    obj.shared = true;
+
+    obj.save(function (err, obj) {
+      if(err) res.status(500).send({});
+      else res.status(200).send(obj);
+
+      return;
+    });
+  });
+});
+
 /*END TRAVELS*/
 
 

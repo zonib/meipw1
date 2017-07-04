@@ -11,6 +11,7 @@ var travelSchema = new mongoose.Schema({
     gps: { lat: Number, lng: Number}
   },
   experiences: [experienceSchema],
+  shared: Boolean,
   deleted: Boolean
 });
 

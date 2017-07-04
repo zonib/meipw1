@@ -9,6 +9,8 @@ var travelSchema = new mongoose.Schema({
   city: String,
   district: String,
   pwd: String,
+  credits: Number,
+  badges: [],
   deleted: Boolean
 });
 
@@ -37,4 +39,6 @@ mongoose.model('User', travelSchema);
 *             type: string
 *           pwd:
 *             type: password
+*           credits:
+*             type: mumber,
 */

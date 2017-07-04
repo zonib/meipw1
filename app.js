@@ -11,7 +11,7 @@ var fileUpload = require('express-fileupload');
 
 
 var db = require('./model/db'),
-media = require('./model/medias'),
+media = require('./model/media'),
 experience = require('./model/experiences'),
 travel = require('./model/travels'),
 user = require('./model/user');
@@ -87,8 +87,6 @@ app.use(function(req,res,next){
 });
 
 app.use('/', index);
-app.use('/users', users);
-app.use('/travel', travel);
 app.use('/api', api);
 
 // catch 404 and forward to error handler
