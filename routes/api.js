@@ -8,6 +8,7 @@ User = mongoose.model('User');
 Media = mongoose.model('Media');
 Experience = mongoose.model('Experience');
 Travel = mongoose.model('Travel'),
+Friends = mongoose.model('Friends'),
 formidable = require('formidable'),
 fs = require('fs');
 
@@ -82,6 +83,18 @@ var router = express.Router();
 *         type: string
 *       gps:
 *         $ref: '#/definitions/GPS'
+*/
+
+/**
+* @swagger
+* definition:
+*       Friends:
+*         type: object
+*         properties:
+*           requester:
+*             type: string
+*           receiver:
+*             type: string
 */
 
 /**
@@ -293,8 +306,51 @@ router.get('/v1/users/:id', function(req, res, next){
   }
 
   User.findById(id, function(err, obj) {
-    if(err){
-      res.status('204').send(JSON.stringify(err));
+    if(!obj){
+      res.status('204').send({});
+    }
+    else {
+      res.status('201').send(obj);
+    }
+    return;
+  });
+});
+
+//getuser by name
+/**
+* @swagger
+* /api/v1/users/search/{name}/:
+*   get:
+*     tags:
+*       - Users
+*     description: get user
+*     produces:
+*       - application/json
+*     parameters:
+*       - name: name
+*         description: nome para Pesquisar
+*         in: path
+*         required: true
+*         type: string
+*     responses:
+*       200:
+*         description: Successfully return
+*       400:
+*         description: bad requeste / missing parameters
+*       204:
+*         description: failed to get user
+*/
+router.get('/v1/users/search/:name', function(req, res, next){
+  var name = req.params.name;
+
+  if(len(name) == 0){
+    res.status('400').send(JSON.stringify({ error: { code: "0x0001"}}));
+    return;
+  }
+
+  User.find({ $or:[ {firstName: new RegExp('^' + name + '$', "i")}, {lastName: new RegExp('^' + name + '$', "i")} ], deleted: { $ne: true } }, function(err, obj) {
+    if(!obj){
+      res.status('204').send(err);
     }
     else {
       res.status('201').send(obj);
@@ -357,6 +413,153 @@ router.put('/v1/users/:id/credits/', function(req, res, next){
 });
 
 /*END USERS*/
+
+
+/*Friends*/
+
+//new request
+/**
+* @swagger
+* /api/v1/friends/request/:
+*   post:
+*     tags:
+*       - Friends
+*     description: insert a friends request
+*     produces:
+*       - application/json
+*     parameters:
+*       - name: body
+*         description: friends object
+*         in: body
+*         required: true
+*         schema:
+*           $ref: '#/definitions/Friends'
+*     responses:
+*       201:
+*         description: Successfully created
+*       400:
+*         description: bad requeste / missing parameters
+*       500:
+*         description: failed to add request
+*/
+router.post('/v1/friends/request/', function(req, res, next){
+  var friendrequest = req.body;
+
+  if(len(friendrequest) == 0){
+    res.status('400').send(JSON.stringify({ error: { code: "0x0001"}}));
+    return;
+  }
+
+  Friends.create(friendrequest, function(err, obj) {
+    if(err){
+      res.status('500').send(JSON.stringify(err));
+    }
+    else {
+      res.status('201').send(obj);
+    }
+
+    return;
+  });
+});
+
+//get friends by user id
+/**
+* @swagger
+* /api/v1/users/{id}/:
+*   get:
+*     tags:
+*       - Users
+*     description: get user
+*     produces:
+*       - application/json
+*     parameters:
+*       - name: id
+*         description: users id
+*         in: path
+*         required: true
+*         type: string
+*     responses:
+*       200:
+*         description: Successfully return
+*       400:
+*         description: bad requeste / missing parameters
+*       204:
+*         description: failed to get user
+*/
+router.get('/v1/friends/:id', function(req, res, next){
+  var id = req.params.id;
+
+  if(len(id) == 0){
+    res.status('400').send(JSON.stringify({ error: { code: "0x0001"}}));
+    return;
+  }
+
+  User.findById(id, function(err, obj) {
+    if(!obj){
+      res.status('204').send({});
+    }
+    else {
+      res.status('201').send(obj);
+    }
+    return;
+  });
+});
+
+//accept/decline request
+/**
+* @swagger
+* /api/v1/users/{id}/credits/:
+*   put:
+*     tags:
+*       - Users
+*     description: add / remove credits
+*     consumes:
+*       - application/json
+*     produces:
+*       - application/json
+*     parameters:
+*       - name: id
+*         description: users id
+*         in: path
+*         required: true
+*         type: string
+*       - name: body
+*         description: credits
+*         in: body
+*         required: true
+*         schema:
+*           $ref: '#/definitions/Credits'
+*     responses:
+*       200:
+*         description: Successfully added / removed
+*       204:
+*         description: user not found
+*/
+router.put('/v1/friends/request/', function(req, res, next){
+  var id = req.params.id;
+  var creditstoadd = req.body.value;
+
+  User.findById(id, function(err, obj) {
+    if(!obj){
+      res.status(204).send();
+      return;
+    }
+
+    obj.credits += creditstoadd;
+    obj.save(function(err, obj){
+      if(!err){
+        res.status(200).send(obj);
+        return;
+      }
+
+      res.status(500).send();
+      return;
+    })
+  });
+});
+
+/*END Friends*/
+
 
 /*TRAVELS*/
 //add new travel to database

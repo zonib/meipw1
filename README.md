@@ -33,7 +33,7 @@ viagem
       - Criar funções para adicionar e remover "créditos". O número de "créditos" a adicionar ou remover, é definido como parametro na função; #done!
 
       - Mudar status da viagem, para pública (de modo a puder ser visível pelso restantes utilizadores); #done!
-      - Pesquisar por utilizadores (com base no nome);
+      - Pesquisar por utilizadores (com base no nome);  #done!
       - Enviar pediddos de amizade;
       - Aceitar/Recusar pedidos de amizade;
       - Obter as viagens mais recentes de uma amigo (ordenadas por data);
@@ -45,4 +45,4 @@ viagem
       	-- Esta vai direto para minha bucket list!; ) #3
 
       - Criar funções para atribuit "Badges" ao utilizador. O "titulo" do "Badges" vai como parametro na função;
-      - Criar função para disponibilizar todos os "Badges" do utilizador (para que assim possa, apresentar os mesmos)
+      - Criar função para disponibilizar todos os "Badges" do utilizador (para que assim possa, apresentar os mesmos) #Done, vem junto com o utlizador 

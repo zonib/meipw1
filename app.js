@@ -14,7 +14,8 @@ var db = require('./model/db'),
 media = require('./model/media'),
 experience = require('./model/experiences'),
 travel = require('./model/travels'),
-user = require('./model/user');
+user = require('./model/user'),
+friends = require('./model/friends');
 
 var index = require('./routes/index'),
 users = require('./routes/users'),
