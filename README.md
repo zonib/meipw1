@@ -34,8 +34,8 @@ viagem
 
       - Mudar status da viagem, para pública (de modo a puder ser visível pelso restantes utilizadores); #done!
       - Pesquisar por utilizadores (com base no nome);  #done!
-      - Enviar pediddos de amizade;
-      - Aceitar/Recusar pedidos de amizade;
+      - Enviar pediddos de amizade; #done!
+      - Aceitar/Recusar pedidos de amizade; #almost done!
       - Obter as viagens mais recentes de uma amigo (ordenadas por data);
       - Visualizar todas as ações dos amigos. Adição de viagem, Novos momentos, "Badges", Adições a Bucket List (ordenados pela data);
 
@@ -45,4 +45,9 @@ viagem
       	-- Esta vai direto para minha bucket list!; ) #3
 
       - Criar funções para atribuit "Badges" ao utilizador. O "titulo" do "Badges" vai como parametro na função;
-      - Criar função para disponibilizar todos os "Badges" do utilizador (para que assim possa, apresentar os mesmos) #Done, vem junto com o utlizador 
+      - Criar função para disponibilizar todos os "Badges" do utilizador (para que assim possa, apresentar os mesmos) #Done, vem junto com o utlizador
+
+
+      j - 595eafa2a80d350f35830ea3
+      k - 595eafb4a80d350f35830ea4
+      req - 595eb02a14030e0f50b52b47

@@ -10,7 +10,7 @@ var travelSchema = new mongoose.Schema({
   district: String,
   pwd: String,
   credits: Number,
-  friends: [],
+  friends: [String],
   badges: [],
   deleted: Boolean
 });

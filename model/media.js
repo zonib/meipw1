@@ -1,7 +1,7 @@
 var mongoose = require('mongoose');
 
 var mediaSchema = new mongoose.Schema({
-  valueobj: { data: Buffer, contentType: String },
+  path: {type: String },
   date: { type: Date, default: Date.now },
   typeof: { type: String, enum : ['photo', 'audio', 'video', 'text'] },
   deleted: Boolean,

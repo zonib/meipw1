@@ -16,5 +16,25 @@ experienceSchema.methods.delete = function(callback){
   callback();
 }
 
+experienceSchema.methods.getMedias = function(callback){
+
+  var outdata = [];
+  for(var i = 0, s = exp.medias.length; i < s; i++){
+    if(exp.medias[i].deleted != true) outdata.push(exp.medias[i]);
+  }
+
+  callback(outdata);
+}
+
+experienceSchema.methods.getMedia = function(id, callback){
+  var media = this.medias.id(id);
+  if(!media.deleted) callback(media);
+  else callback(null);
+}
+
+experienceSchema.methods.setMedia = function(media, callback){
+  
+}
+
 module.exports = experienceSchema;
 mongoose.model('Experience', experienceSchema);

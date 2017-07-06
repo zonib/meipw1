@@ -8,7 +8,7 @@ User = mongoose.model('User');
 Media = mongoose.model('Media');
 Experience = mongoose.model('Experience');
 Travel = mongoose.model('Travel'),
-Friends = mongoose.model('Friends'),
+FriendsRequest = mongoose.model('FriendsRequest'),
 formidable = require('formidable'),
 fs = require('fs');
 
@@ -260,7 +260,7 @@ router.post('/v1/users/login', function(req, res, next){
   var email = req.body.email;
   var pwd = req.body.pwd;
 
-  User.findOne({ email: email, pwd: pwd }, function(err, obj) {
+  User.findOne({ email: email, pwd: pwd }, { friends: 0, __v: 0}, function(err, obj) {
     if(!obj){
       res.status(401).send({});
       return;
@@ -412,24 +412,19 @@ router.put('/v1/users/:id/credits/', function(req, res, next){
   });
 });
 
-/*END USERS*/
-
-
-/*Friends*/
-
 //new request
 /**
 * @swagger
-* /api/v1/friends/request/:
+* /api/v1/users/request:
 *   post:
 *     tags:
-*       - Friends
+*       - Users
 *     description: insert a friends request
 *     produces:
 *       - application/json
 *     parameters:
 *       - name: body
-*         description: friends object
+*         description: users id
 *         in: body
 *         required: true
 *         schema:
@@ -438,11 +433,11 @@ router.put('/v1/users/:id/credits/', function(req, res, next){
 *       201:
 *         description: Successfully created
 *       400:
-*         description: bad requeste / missing parameters
+*         description: bad request / missing parameters
 *       500:
 *         description: failed to add request
 */
-router.post('/v1/friends/request/', function(req, res, next){
+router.post('/v1/users/request', function(req, res, next){
   var friendrequest = req.body;
 
   if(len(friendrequest) == 0){
@@ -450,7 +445,7 @@ router.post('/v1/friends/request/', function(req, res, next){
     return;
   }
 
-  Friends.create(friendrequest, function(err, obj) {
+  FriendsRequest.create(friendrequest, function(err, obj) {
     if(err){
       res.status('500').send(JSON.stringify(err));
     }
@@ -461,6 +456,55 @@ router.post('/v1/friends/request/', function(req, res, next){
     return;
   });
 });
+
+//accept/decline request
+/**
+* @swagger
+* /api/v1/users/request/{id}:
+*   put:
+*     tags:
+*       - Users
+*     description: accept/decline friendrequest
+*     produces:
+*       - application/json
+*     parameters:
+*       - name: id
+*         description: request id
+*         in: path
+*         required: true
+*         type: string
+*     responses:
+*       201:
+*         description: Successfully accepted/declined
+*       400:
+*         description: bad request / missing parameters
+*       500:
+*         description: failed to accepte/decline
+*/
+router.put('/v1/users/request/:id', function(req, res, next){
+  var reqid = req.params.id;
+
+  if(cutter.getBinarySize(reqid) != 24){
+    res.status(400).send({});
+    return;
+  }
+
+  FriendsRequest.findById(reqid, function(err, obj){
+    obj.accept(function(result) {
+
+      if(result < 0 ) res.status(204).send();
+      if(result == 0 ) res.status(304).send();
+
+      res.status(200).send({});
+      return;
+    });
+  });
+})
+/*END USERS*/
+
+
+/*Friends*/
+
 
 //get friends by user id
 /**
@@ -502,59 +546,6 @@ router.get('/v1/friends/:id', function(req, res, next){
       res.status('201').send(obj);
     }
     return;
-  });
-});
-
-//accept/decline request
-/**
-* @swagger
-* /api/v1/users/{id}/credits/:
-*   put:
-*     tags:
-*       - Users
-*     description: add / remove credits
-*     consumes:
-*       - application/json
-*     produces:
-*       - application/json
-*     parameters:
-*       - name: id
-*         description: users id
-*         in: path
-*         required: true
-*         type: string
-*       - name: body
-*         description: credits
-*         in: body
-*         required: true
-*         schema:
-*           $ref: '#/definitions/Credits'
-*     responses:
-*       200:
-*         description: Successfully added / removed
-*       204:
-*         description: user not found
-*/
-router.put('/v1/friends/request/', function(req, res, next){
-  var id = req.params.id;
-  var creditstoadd = req.body.value;
-
-  User.findById(id, function(err, obj) {
-    if(!obj){
-      res.status(204).send();
-      return;
-    }
-
-    obj.credits += creditstoadd;
-    obj.save(function(err, obj){
-      if(!err){
-        res.status(200).send(obj);
-        return;
-      }
-
-      res.status(500).send();
-      return;
-    })
   });
 });
 
@@ -1654,12 +1645,9 @@ router.get('/v1/travels/:id/experiences/:ide/medias', function(req, res, next){
       return;
     }
 
-    var outdata = [];
-    for(var i = 0, s = exp.medias.length; i < s; i++){
-      if(exp.medias[i].deleted != true) outdata.push(exp.medias[i]);
-    }
-
-    res.status(200).send(outdata);
+    exp.getMedias(function(obj){
+      res.status(200).send(obj);
+    });
   });
 });
 
