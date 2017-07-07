@@ -1713,6 +1713,10 @@ router.post('/v1/travels/:id/experiences/:ide/medias', function(req, res, next){
       return;
     }
 
+    console.log(media.valueobj);
+    var buf = Buffer.from(media.valueobj, 'base64');
+    media.valueobj = buf;
+
     mediaobj = new Experience(media);
 
     exp.medias.push(mediaobj);
