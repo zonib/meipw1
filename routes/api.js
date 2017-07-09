@@ -19,7 +19,7 @@ var router = express.Router();
 /**
 * @swagger
 * definition:
-*       Rating:
+*       SingleNumberValue:
 *         type: object
 *         properties:
 *           value:
@@ -29,7 +29,17 @@ var router = express.Router();
 /**
 * @swagger
 * definition:
-*       Credits:
+*       SingleStringValue:
+*         type: object
+*         properties:
+*           value:
+*             type: string
+*/
+
+/**
+* @swagger
+* definition:
+*       Rating:
 *         type: object
 *         properties:
 *           value:
@@ -83,18 +93,6 @@ var router = express.Router();
 *         type: string
 *       gps:
 *         $ref: '#/definitions/GPS'
-*/
-
-/**
-* @swagger
-* definition:
-*       Friends:
-*         type: object
-*         properties:
-*           requester:
-*             type: string
-*           receiver:
-*             type: string
 */
 
 /**
@@ -173,8 +171,6 @@ var router = express.Router();
 *         type: string
 *       description:
 *         type: string
-*       shared:
-*         type: boolean
 *       local:
 *         $ref: '#/definitions/Local'
 */
@@ -203,7 +199,7 @@ var router = express.Router();
 *       201:
 *         description: Successfully created
 *       400:
-*         description: bad requeste / missing parameters
+*         description: bad request / missing parameters
 *       500:
 *         description: failed to add travel
 */
@@ -293,7 +289,7 @@ router.post('/v1/users/login', function(req, res, next){
 *       200:
 *         description: Successfully return
 *       400:
-*         description: bad requeste / missing parameters
+*         description: bad request / missing parameters
 *       204:
 *         description: failed to get user
 */
@@ -319,7 +315,7 @@ router.get('/v1/users/:id', function(req, res, next){
 //getuser by name
 /**
 * @swagger
-* /api/v1/users/search/{name}/:
+* /api/v1/users/{name}/search:
 *   get:
 *     tags:
 *       - Users
@@ -336,11 +332,11 @@ router.get('/v1/users/:id', function(req, res, next){
 *       200:
 *         description: Successfully return
 *       400:
-*         description: bad requeste / missing parameters
+*         description: bad request / missing parameters
 *       204:
 *         description: failed to get user
 */
-router.get('/v1/users/search/:name', function(req, res, next){
+router.get('/v1/users/:name/search', function(req, res, next){
   var name = req.params.name;
 
   if(len(name) == 0){
@@ -359,10 +355,206 @@ router.get('/v1/users/search/:name', function(req, res, next){
   });
 });
 
+//getuser friends
+/**
+* @swagger
+* /api/v1/users/{id}/friends:
+*   get:
+*     tags:
+*       - Users
+*     description: get user
+*     produces:
+*       - application/json
+*     parameters:
+*       - name: id
+*         description: users id
+*         in: path
+*         required: true
+*         type: string
+*     responses:
+*       200:
+*         description: Successfully return
+*       400:
+*         description: bad request / missing parameters
+*       204:
+*         description: failed to get user
+*/
+router.get('/v1/users/:id/friends', function(req, res, next){
+  var id = req.params.id;
+
+  if(len(id) == 0){
+    res.status('400').send(JSON.stringify({ error: { code: "0x0001"}}));
+    return;
+  }
+
+  User.findById(id, { friends: 1 , _id: 0 }, function(err, obj) {
+    if(!obj){
+      res.status('204').send({});
+    }
+    else {
+      res.status('201').send(obj);
+    }
+    return;
+  });
+});
+
+//getuser friends request
+/**
+* @swagger
+* /api/v1/users/{id}/request:
+*   get:
+*     tags:
+*       - Users
+*     description: get user
+*     produces:
+*       - application/json
+*     parameters:
+*       - name: id
+*         description: users id
+*         in: path
+*         required: true
+*         type: string
+*     responses:
+*       200:
+*         description: Successfully return
+*       400:
+*         description: bad request / missing parameters
+*       204:
+*         description: failed to get user
+*/
+router.get('/v1/users/:id/request', function(req, res, next){
+  var id = req.params.id;
+
+  if(len(id) == 0){
+    res.status('400').send(JSON.stringify({ error: { code: "0x0001"}}));
+    return;
+  }
+
+  FriendsRequest.find( { $and: [ { deleted: {$ne: true} }, { accepted: {$ne: true} }, { receiver: id } ]}, { accepted: 0, deleted: 0 }, function(err, obj){
+    if(!obj) res.status(204).send([]);
+    else res.status(200).send(obj);
+    return;
+  });
+});
+
+//new request
+/**
+* @swagger
+* /api/v1/users/{id}/request:
+*   post:
+*     tags:
+*       - Users
+*     description: insert a friends request
+*     consumes:
+*       - text
+*     produces:
+*       - application/json
+*     parameters:
+*       - name: id
+*         description: user id
+*         in: path
+*         required: true
+*         type: string
+*       - name: body
+*         description: sender id
+*         in: body
+*         required: true
+*         schema:
+*           type: string
+*     responses:
+*       201:
+*         description: Successfully created
+*       208:
+*         description: already exists
+*       400:
+*         description: bad request / missing parameters
+*       500:
+*         description: failed to add request
+*/
+router.post('/v1/users/:id/request', function(req, res, next){
+  var friendrequest;
+  friendrequest.receiver = req.params.id;
+  friendrequest.requestr = req.body;
+
+  if(len(friendrequest) == 0){
+    res.status('400').send(JSON.stringify({ error: { code: "0x0001"}}));
+    return;
+  }
+
+  FriendsRequest.find({
+    $or:[
+      { $and: [ { receiver: friendrequest.receiver }, { requestr: friendrequest.requestr }] },
+      { $and: [ { requestr: friendrequest.receiver }, { receiver: friendrequest.requestr }] }
+    ]
+  }, function(err, obj){
+    if(!obj){
+      FriendsRequest.create(friendrequest, function(err, obj) {
+        if(err || !obj){
+          res.status(500).send(JSON.stringify(err));
+        }
+        else {
+          res.status(201).send(obj);
+        }
+        return;
+      });
+    }
+    else {
+      res.status(208).send({});
+      return;
+    }
+  });
+});
+
+//accept/decline request
+/**
+* @swagger
+* /api/v1/users/{id}/request/{idreq}:
+*   put:
+*     tags:
+*       - Users
+*     description: accept/decline friendrequest
+*     produces:
+*       - application/json
+*     parameters:
+*       - name: id
+*         description: user id
+*         in: path
+*         required: true
+*         type: string
+*       - name: idreq
+*         description: req id
+*         in: path
+*         required: true
+*         type: string
+*     responses:
+*       201:
+*         description: Successfully accepted/declined
+*       400:
+*         description: bad request / missing parameters
+*       500:
+*         description: failed to accepte/decline
+*/
+router.put('/v1/users/:id/request/:id', function(req, res, next){
+  var id = req.params.id;
+  var reqid = req.params.reqid;
+
+  if(cutter.getBinarySize(reqid) != 24 || cutter.getBinarySize(id) != 24){
+    res.status(400).send({});
+    return;
+  }
+
+  FriendsRequest.findById(reqid, function(err, obj){
+    obj.accept(function(result) {
+      res.status(200).send(obj);
+      return;
+    });
+  });
+})
+
 //add/remove credits
 /**
 * @swagger
-* /api/v1/users/{id}/credits/:
+* /api/v1/users/{id}/credits:
 *   put:
 *     tags:
 *       - Users
@@ -382,16 +574,18 @@ router.get('/v1/users/search/:name', function(req, res, next){
 *         in: body
 *         required: true
 *         schema:
-*           $ref: '#/definitions/Credits'
+*           $ref: '#/definitions/SingleNumberValue'
 *     responses:
-*       200:
-*         description: Successfully added / removed
+*       201:
+*         description: Successfully added
 *       204:
 *         description: user not found
 */
-router.put('/v1/users/:id/credits/', function(req, res, next){
+router.put('/v1/users/:id/credits', function(req, res, next){
   var id = req.params.id;
   var creditstoadd = req.body.value;
+
+  console.log(creditstoadd);
 
   User.findById(id, function(err, obj) {
     if(!obj){
@@ -400,6 +594,60 @@ router.put('/v1/users/:id/credits/', function(req, res, next){
     }
 
     obj.credits += creditstoadd;
+    obj.save(function(err, obj){
+      if(!err && obj){
+        res.status(201).send(obj);
+        return;
+      }
+
+      res.status(204).send();
+      return;
+    })
+  });
+});
+
+//add badges
+/**
+* @swagger
+* /api/v1/users/{id}/badges/:
+*   put:
+*     tags:
+*       - Users
+*     description: add / remove credits
+*     consumes:
+*       - application/json
+*     produces:
+*       - application/json
+*     parameters:
+*       - name: id
+*         description: users id
+*         in: path
+*         required: true
+*         type: string
+*       - name: body
+*         description: credits
+*         in: body
+*         required: true
+*         schema:
+*           $ref: '#/definitions/SingleStringValue'
+*     responses:
+*       200:
+*         description: Successfully added / removed
+*       204:
+*         description: user not found
+*/
+router.put('/v1/users/:id/badges/', function(req, res, next){
+  var id = req.params.id;
+  var badge = req.body.value;
+
+  User.findById(id, function(err, obj) {
+    if(!obj){
+      res.status(204).send();
+      return;
+    }
+
+    if(obj.badges.indexOf(badge) < 0)  obj.badges.push(badge);
+
     obj.save(function(err, obj){
       if(!err){
         res.status(200).send(obj);
@@ -412,144 +660,7 @@ router.put('/v1/users/:id/credits/', function(req, res, next){
   });
 });
 
-//new request
-/**
-* @swagger
-* /api/v1/users/request:
-*   post:
-*     tags:
-*       - Users
-*     description: insert a friends request
-*     produces:
-*       - application/json
-*     parameters:
-*       - name: body
-*         description: users id
-*         in: body
-*         required: true
-*         schema:
-*           $ref: '#/definitions/Friends'
-*     responses:
-*       201:
-*         description: Successfully created
-*       400:
-*         description: bad request / missing parameters
-*       500:
-*         description: failed to add request
-*/
-router.post('/v1/users/request', function(req, res, next){
-  var friendrequest = req.body;
-
-  if(len(friendrequest) == 0){
-    res.status('400').send(JSON.stringify({ error: { code: "0x0001"}}));
-    return;
-  }
-
-  FriendsRequest.create(friendrequest, function(err, obj) {
-    if(err){
-      res.status('500').send(JSON.stringify(err));
-    }
-    else {
-      res.status('201').send(obj);
-    }
-
-    return;
-  });
-});
-
-//accept/decline request
-/**
-* @swagger
-* /api/v1/users/request/{id}:
-*   put:
-*     tags:
-*       - Users
-*     description: accept/decline friendrequest
-*     produces:
-*       - application/json
-*     parameters:
-*       - name: id
-*         description: request id
-*         in: path
-*         required: true
-*         type: string
-*     responses:
-*       201:
-*         description: Successfully accepted/declined
-*       400:
-*         description: bad request / missing parameters
-*       500:
-*         description: failed to accepte/decline
-*/
-router.put('/v1/users/request/:id', function(req, res, next){
-  var reqid = req.params.id;
-
-  if(cutter.getBinarySize(reqid) != 24){
-    res.status(400).send({});
-    return;
-  }
-
-  FriendsRequest.findById(reqid, function(err, obj){
-    obj.accept(function(result) {
-
-      if(result < 0 ) res.status(204).send();
-      if(result == 0 ) res.status(304).send();
-
-      res.status(200).send({});
-      return;
-    });
-  });
-})
 /*END USERS*/
-
-
-/*Friends*/
-
-
-//get friends by user id
-/**
-* @swagger
-* /api/v1/users/{id}/:
-*   get:
-*     tags:
-*       - Users
-*     description: get user
-*     produces:
-*       - application/json
-*     parameters:
-*       - name: id
-*         description: users id
-*         in: path
-*         required: true
-*         type: string
-*     responses:
-*       200:
-*         description: Successfully return
-*       400:
-*         description: bad requeste / missing parameters
-*       204:
-*         description: failed to get user
-*/
-router.get('/v1/friends/:id', function(req, res, next){
-  var id = req.params.id;
-
-  if(len(id) == 0){
-    res.status('400').send(JSON.stringify({ error: { code: "0x0001"}}));
-    return;
-  }
-
-  User.findById(id, function(err, obj) {
-    if(!obj){
-      res.status('204').send({});
-    }
-    else {
-      res.status('201').send(obj);
-    }
-    return;
-  });
-});
-
-/*END Friends*/
 
 
 /*TRAVELS*/
@@ -565,7 +676,7 @@ router.get('/v1/friends/:id', function(req, res, next){
 *       201:
 *         description: Successfully created
 *       400:
-*         description: bad requeste / missing parameters
+*         description: bad request / missing parameters
 *       500:
 *         description: failed to add travel
 *     deprecated: true
@@ -628,7 +739,7 @@ router.post('/v1/travels/', function(req, res, next){
 *       201:
 *         description: Successfully created
 *       400:
-*         description: bad requeste / missing parameters
+*         description: bad request / missing parameters
 *       500:
 *         description: failed to add travel
 */
@@ -646,7 +757,7 @@ router.post('/v2/travels/', function(req, res, next){
       res.status('500').send(JSON.stringify(err));
     }
     else {
-      res.status('201').send({});
+      res.status('201').send(obj);
     }
 
     return;
@@ -674,7 +785,7 @@ router.post('/v2/travels/', function(req, res, next){
 */
 router.get('/v1/travels', function(req, res, next){
 
-  Travel.find({deleted: {$ne: true}},{ "experiences": 0, "deleted": 0}, function (err, docs) {
+  Travel.find({deleted: {$ne: true}}, { "experiences": 0, "deleted": 0, shared: 0}, function (err, docs) {
     if(!docs){
       res.status(204).send();
       return;
@@ -685,14 +796,60 @@ router.get('/v1/travels', function(req, res, next){
   });
 });
 
-//get all travels with firts moment img
+//get friend travels
+/**
+* @swagger
+* /api/v1/travels/user/{id}:
+*   get:
+*     tags:
+*       - Travels
+*     description: Returns friends travels
+*     produces:
+*       - application/json
+*     parameters:
+*       - name: id
+*         description: friend id
+*         in: path
+*         required: true
+*         type: string
+*     responses:
+*       200:
+*         description: A array of travel
+*         schema:
+*           $ref: '#/definitions/Travel'
+*       204:
+*         description: travel not found
+*       400:
+*         description: bad request / invalid id
+*/
+router.get('/v1/travels/user/:id', function(req, res, next){
+  var id = req.params.id;
+
+  if(cutter.getBinarySize(id) != 24){
+    res.status(400).send({});
+    return;
+  }
+
+  Travel.find( {deleted: {$ne: true},  shared: true, user: id }, { "experiences": 0, "deleted": 0, shared: 0}, {sort: {date: -1}}, function (err, docs) {
+    if(!docs){
+      res.status(204).send();
+      return;
+    }
+
+    res.send(docs);
+    return;
+  });
+
+});
+
+//get travel firt moment img
 /**
 * @swagger
 * /api/v1/travels/{id}/firstmedia:
 *   get:
 *     tags:
 *       - Travels
-*     description: Returns all Travels
+*     description: get travel first image type media
 *     produces:
 *       - application/json
 *     parameters:
@@ -704,8 +861,6 @@ router.get('/v1/travels', function(req, res, next){
 *     responses:
 *       200:
 *         description: first media
-*         schema:
-*           $ref: '#/definitions/Media'
 *       204:
 *         description: no content / No media
 */
@@ -718,16 +873,10 @@ router.get('/v1/travels/:id/firstmedia', function(req, res, next){
     return;
   }
 
-  Travel.find({_id: travelid, deleted: {$ne: true}}, function (err, docs) {
-    if(!docs){
-      res.status(204).send();
-      return;
-    }
+  Travel.findOne({_id: id, deleted: {$ne: true} }, {experiences: 1}, function (err, docs) {
+    if(!docs) return res.status(204).send();
 
-    if(!docs.experiences){
-      res.status(204).send();
-      return;
-    }
+    if(!docs.experiences) return res.status(200).send([]);
 
     var arrExp = docs.experiences;
     var i = 0;
@@ -736,14 +885,14 @@ router.get('/v1/travels/:id/firstmedia', function(req, res, next){
       if(!arrExp[i].deleted && arrExp[i].medias.length > 0){
         var arrMed = arrExp[i].medias;
         for(var ii = 0, ss = arrMed.length; ii < ss; ii++){
-          if(!arrMed[ii].deleted && arrMed[ii].typeof == "photo"){
-            return res.status(200).send(arrMed[ii]);
+          if(!arrMed[ii].deleted && arrMed[ii].typeof && arrMed[ii].typeof.indexOf("image") > -1){
+            return res.status(200).sendFile(req.defaultUpload + arrMed[ii].path);
           }
         }
       }
     }
 
-    res.status(204).send({});
+    res.status(204).send(docs);
     return;
   });
 });
@@ -772,7 +921,7 @@ router.get('/v1/travels/:id/firstmedia', function(req, res, next){
 *       204:
 *         description: travel not found
 *       400:
-*         description: bad requeste / invalid id
+*         description: bad request / invalid id
 */
 router.get('/v1/travels/:id', function(req, res, next){
   var id = req.params.id;
@@ -814,7 +963,7 @@ router.get('/v1/travels/:id', function(req, res, next){
 *       201:
 *         description: Successfully created
 *       400:
-*         description: bad requeste / missing parameters
+*         description: bad request / missing parameters
 *       500:
 *         description: failed to add travel
 *     deprecated: true
@@ -965,7 +1114,7 @@ router.delete('/v1/travels/:id', function(req, res, next) {
   });
 });
 
-//get travel rates MISSING
+//get travel rates
 /**
 * @swagger
 * /api/v1/travels/{id}/rates:
@@ -983,13 +1132,11 @@ router.delete('/v1/travels/:id', function(req, res, next) {
 *         type: string
 *     responses:
 *       200:
-*         description: A single travel
-*         schema:
-*           $ref: '#/definitions/Rating'
+*         description: travel ratings
 *       204:
 *         description: travel not found
 *       400:
-*         description: bad requeste / invalid id
+*         description: bad request / invalid id
 */
 router.get('/v1/travels/:id/rates', function(req, res, next){
   var id = req.params.id;
@@ -999,16 +1146,18 @@ router.get('/v1/travels/:id/rates', function(req, res, next){
     return;
   }
 
-  Travel.findOne({_id:id,  "deleted": { $ne: true }}, function (err, docs) {
+  Travel.findOne({_id:id,  "deleted": { $ne: true }}, { classifications: 1 }, function (err, docs) {
     if(!docs){
       res.status(204).send();
       return;
     }
 
-    var rating = 0;
-    for(var i = 0, s = docs.experiences.length; i < s; i++) if(!docs.experiences[i].deleted) for(var k = 0, ss = docs.experiences[i].classifications.length; k < ss; k++) if(!docs.experiences[i].classifications[k].deleted) rating += eval(docs.experiences[i].classifications[k].value);
+    // var rating = 0;
+    // for(var i = 0, s = docs.experiences.length; i < s; i++) if(!docs.experiences[i].deleted) for(var k = 0, ss = docs.experiences[i].classifications.length; k < ss; k++) if(!docs.experiences[i].classifications[k].deleted) rating += eval(docs.experiences[i].classifications[k].value);
 
-    res.status(200).send("{ value: " + rating + " }");
+    // res.status(200).send("{ value: " + rating + " }");
+    res.status(200).send(docs.classifications);
+    // 5926f80d81ccd70570c1bbab
     return;
   });
 });
@@ -1141,7 +1290,7 @@ router.get('/v1/travels/:id/experiences/', function(req, res, next){
 *       201:
 *         description: Successfully created
 *       400:
-*         description: bad requeste / missing parameters
+*         description: bad request / missing parameters
 *       500:
 *         description: failed to add travel
 *     deprecated: true
@@ -1182,7 +1331,7 @@ router.post('/v1/travels/:id/experiences/', function(req, res, next){
 
     docs.save(function (err) {
       if (err) res.status(500).send();
-      res.status(201).send();
+      res.status(201).send(data);
 
       return;
     });
@@ -1217,7 +1366,7 @@ router.post('/v1/travels/:id/experiences/', function(req, res, next){
 *       201:
 *         description: Successfully created
 *       400:
-*         description: bad requeste / missing parameters
+*         description: bad request / missing parameters
 *       500:
 *         description: failed to create experience
 */
@@ -1248,7 +1397,7 @@ router.post('/v2/travels/:id/experiences/', function(req, res, next){
 
     docs.save(function (err) {
       if (err) res.status(500).send(JSON.stringify(err));
-      res.status(201).send({});
+      res.status(201).send(experienceobj);
 
       return;
     });
@@ -1284,7 +1433,7 @@ router.post('/v2/travels/:id/experiences/', function(req, res, next){
 *       204:
 *         description: travel/experience not found
 *       400:
-*         description: bad requeste / invalid id's
+*         description: bad request / invalid id's
 */
 router.get('/v1/travels/:id/experiences/:eid', function(req, res, next){
   var travelid = req.params.id;
@@ -1324,7 +1473,7 @@ router.get('/v1/travels/:id/experiences/:eid', function(req, res, next){
 *       201:
 *         description: Successfully created
 *       400:
-*         description: bad requeste / missing parameters
+*         description: bad request / missing parameters
 *       500:
 *         description: failed to add travel
 *     deprecated: true
@@ -1401,7 +1550,7 @@ router.put('/v1/travels/:id/experiences/:eid', function(req, res, next){
 *       200:
 *         description: Successfully updated
 *       400:
-*         description: bad requeste / missing parameters
+*         description: bad request / missing parameters
 *       500:
 *         description: failed to create experience
 */
@@ -1482,16 +1631,10 @@ router.delete('/v1/travels/:id/experiences/:eid', function(req, res, next){
   }
 
   Travel.findById(travelid, function(err, obj){
-    if(err){
-      res.status(204).send(err);
-      return;
-    }
+    if(!obj) return res.status(204).send(err);
 
     exp = obj.experiences.id(experienceid);
-    if(!exp){
-      res.status(204).send({});
-      return;
-    }
+    if(!exp)return res.status(204).send({});
 
     exp.delete(function () {
       res.status(200).send({});
@@ -1576,6 +1719,10 @@ router.put('/v1/travels/:id/experiences/:eid/rate', function(req, res, next){
       res.status(204).send({});
       return;
     }
+
+    if( obj.classifications.indexOf(rate) < 0) obj.classifications[rate] = [];
+    obj.classifications[rate]++;
+
 
     exp.classifications.push(rate);
 
@@ -1686,7 +1833,7 @@ router.get('/v1/travels/:id/experiences/:ide/medias', function(req, res, next){
 *       204:
 *         description: travel/ experience don't exists
 *       400:
-*         description: bad requeste / missing parameters
+*         description: bad request / missing parameters
 *       500:
 *         description: failed to add media
 */
@@ -1763,7 +1910,7 @@ router.post('/v1/travels/:id/experiences/:ide/medias', function(req, res, next){
 *       204:
 *         description: travel/ experience / media don't exists
 *       400:
-*         description: bad requeste / missing parameters
+*         description: bad request / missing parameters
 *       500:
 *         description: failed to create experience
 */
@@ -1851,35 +1998,22 @@ router.delete('/v1/travels/:id/experiences/:ide/medias/:idm', function(req, res,
   var experienceid = req.params.ide;
   var mediaid = req.params.idm;
 
-  if(cutter.getBinarySize(experienceid) != 24 || cutter.getBinarySize(travelid) != 24 || cutter.getBinarySize(mediaid) != 24){
-    res.status(400).send();
-    return;
-  }
+  if(cutter.getBinarySize(experienceid) != 24 || cutter.getBinarySize(travelid) != 24 || cutter.getBinarySize(mediaid) != 24) return res.status(400).send();
 
   Travel.findById(travelid, function(err, obj){
-    if(err){
-      res.status(204).send(err);
-      return;
-    }
+
+    if(!obj) return res.status(204).send({});
 
     exp = obj.experiences.id(experienceid);
-    if(!exp || exp.deleted == true){
-      res.status(204).send({});
-      return;
-    }
+    if(!exp || exp.deleted == true) return res.status(204).send({});
 
     med = exp.medias.id(mediaid);
-
-    if(!med || med.deleted == true){
-      res.status(204).send({});
-      return;
-    }
+    if(!med) return res.status(204).send({});
 
     med.delete(function(){
       obj.save(function (err) {
-        if (err) res.status(500).send(JSON.stringify(err));
-        res.status(201).send({});
-        return;
+        if (err) res.status(500).send({});
+        return res.status(201).send({});
       });
     });
   });
@@ -1917,7 +2051,7 @@ router.delete('/v1/travels/:id/experiences/:ide/medias/:idm', function(req, res,
 *       204:
 *         description: travel/ experience don't exists
 *       400:
-*         description: bad requeste / missing parameters
+*         description: bad request / missing parameters
 *       500:
 *         description: failed to add media
 */
@@ -1926,16 +2060,28 @@ router.post('/v2/travels/:id/experiences/:ide/medias', function(req, res, next){
   var travelid = req.params.id;
   var experienceid = req.params.ide;
 
-  if(cutter.getBinarySize(experienceid) != 24 || cutter.getBinarySize(travelid) != 24 || !req.files) res.status(400).send({})
+  if(!req.files) return res.status(400).send();
+  if(cutter.getBinarySize(experienceid) != 24 || cutter.getBinarySize(travelid) != 24 || !req.files) res.status(400).send({});
 
-  req.files.media.mv('uploads/' + req.files.media.name, function(err){
-    if(err) {
-      res.status(409).send({});
-      return;
-    }
+  var media = {
+    path: req.files[0].filename,
+    typeof: req.files[0].mimetype,
+  };
 
-    res.status(200).send({});
-    return
+  var mediaobj = new Media(media);
+
+  Travel.findById(travelid, function(err, obj){
+    if(!obj) return res.status(204).send({});
+
+    exp = obj.experiences.id(experienceid);
+    if(!exp || exp.deleted == true) return res.status(204).send({});
+
+    exp.medias.push(mediaobj);
+
+    obj.save(function (err) {
+      if(err) return res.status(500).send(err);
+      else return res.status(201).send(mediaobj);
+    });
   });
 });
 
