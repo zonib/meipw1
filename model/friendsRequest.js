@@ -38,6 +38,7 @@ friendsRequestSchema.methods.accept = function(callback){
 
 friendsRequestSchema.methods.reject = function(callback){
   this.accepted = false;
+  this.deleted = true;
   callback();
 }
 

@@ -7,8 +7,22 @@ var bodyParser = require('body-parser');
 var flash = require('connect-flash');
 var session = require("express-session");
 var swaggerJSDoc = require('swagger-jsdoc');
-var fileUpload = require('express-fileupload');
+// var fileUpload = require('express-fileupload');
+var multer = require('multer');
+// var upload = ;
 
+var defaultUpload = __dirname + '/upload/';
+
+var mOptions = {
+  storage: multer.diskStorage({
+    destination: function (req, file, cb) {
+      cb(null, defaultUpload);
+    },
+    filename: function (req, file, cb) {
+      cb(null, Date.now() + '-' + file.originalname);
+    }
+  })
+};
 
 var db = require('./model/db'),
 media = require('./model/media'),
@@ -78,14 +92,18 @@ app.use(session({
 }));
 
 
-app.use(fileUpload());
+// app.use(fileUpload());
+
+app.use(multer(mOptions).any());
 app.use(flash());
 
 // Make our db accessible to our router
 app.use(function(req,res,next){
   req.db = db;
+  req.defaultUpload = defaultUpload;
   next();
 });
+
 
 app.use('/', index);
 app.use('/api', api);
@@ -96,6 +114,8 @@ app.use(function(req, res, next) {
   err.status = 404;
   next(err);
 });
+
+
 
 // error handler
 app.use(function(err, req, res, next) {

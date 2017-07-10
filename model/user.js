@@ -11,7 +11,7 @@ var travelSchema = new mongoose.Schema({
   pwd: String,
   credits: Number,
   friends: [String],
-  badges: [],
+  badges: [String],
   deleted: Boolean
 });
 
